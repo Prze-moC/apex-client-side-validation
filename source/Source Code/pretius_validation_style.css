@@ -1,0 +1,23 @@
+img.validationLoaderImg, 
+img.pretius_val_success,
+img.pretius_val_failed {
+  padding-left: 3px;
+  height: 12px;
+}
+
+.apexBuildInErrorText {
+  color: red;
+}
+
+.t-Form-inputContainer input[type="text"].pretius_highlight_error,  
+.t-Form-inputContainer input.text_field.pretius_highlight_error,
+input.pretius_highlight_error {
+  background-color: #FFE4E4;
+}
+
+
+.t-Form-inputContainer input[type="text"].pretius_highlight_success,
+.t-Form-inputContainer input.text_field.pretius_highlight_success,
+input.pretius_highlight_success {
+  background-color: #E4FFE6;
+}
