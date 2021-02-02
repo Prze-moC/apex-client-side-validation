@@ -1,1504 +1,1208 @@
-set define off
-set verify off
-set feedback off
-WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
-begin wwv_flow.g_import_in_progress := true; end; 
-/
- 
---       AAAA       PPPPP   EEEEEE  XX      XX
---      AA  AA      PP  PP  EE       XX    XX
---     AA    AA     PP  PP  EE        XX  XX
---    AAAAAAAAAA    PPPPP   EEEE       XXXX
---   AA        AA   PP      EE        XX  XX
---  AA          AA  PP      EE       XX    XX
---  AA          AA  PP      EEEEEE  XX      XX
-prompt  Set Credentials...
- 
-begin
- 
-  -- Assumes you are running the script connected to SQL*Plus as the Oracle user APEX_040100 or as the owner (parsing schema) of the application.
-  wwv_flow_api.set_security_group_id(p_security_group_id=>nvl(wwv_flow_application_install.get_workspace_id,1306414406437536));
- 
-end;
-/
-
-begin wwv_flow.g_import_in_progress := true; end;
-/
-begin 
-
-select value into wwv_flow_api.g_nls_numeric_chars from nls_session_parameters where parameter='NLS_NUMERIC_CHARACTERS';
-
-end;
-
-/
-begin execute immediate 'alter session set nls_numeric_characters=''.,''';
-
-end;
-
-/
-begin wwv_flow.g_browser_language := 'en'; end;
-/
-prompt  Check Compatibility...
- 
-begin
- 
--- This date identifies the minimum version required to import this file.
-wwv_flow_api.set_version(p_version_yyyy_mm_dd=>'2011.02.12');
- 
-end;
-/
-
-prompt  Set Application ID...
- 
-begin
- 
-   -- SET APPLICATION ID
-   wwv_flow.g_flow_id := nvl(wwv_flow_application_install.get_application_id,102);
-   wwv_flow_api.g_id_offset := nvl(wwv_flow_application_install.get_offset,0);
-null;
- 
-end;
-/
-
-prompt  ...plugins
+prompt --application/set_environment
+set define off verify off feedback off
+whenever sqlerror exit sql.sqlcode rollback
+--------------------------------------------------------------------------------
 --
---application/shared_components/plugins/dynamic_action/pretius_apex_client_side_validation
- 
+-- ORACLE Application Express (APEX) export file
+--
+-- You should run the script connected to SQL*Plus as the Oracle user
+-- APEX_200200 or as the owner (parsing schema) of the application.
+--
+-- NOTE: Calls to apex_application_install override the defaults below.
+--
+--------------------------------------------------------------------------------
 begin
- 
-wwv_flow_api.create_plugin (
-  p_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_type => 'DYNAMIC ACTION'
- ,p_name => 'PRETIUS_APEX_CLIENT_SIDE_VALIDATION'
- ,p_display_name => 'Pretius APEX Client Side Validation'
- ,p_category => 'EXECUTE'
- ,p_image_prefix => '#PLUGIN_PREFIX#'
- ,p_plsql_code => 
-'/*'||unistr('\000a')||
-'  author: Bartosz Ostrowski ostrowski.bartosz@gmail.com, bostrowski@pretius.com'||unistr('\000a')||
-'  1.0 release date: 2015-09-16'||unistr('\000a')||
-'  1.1 release date: 2016-04-19'||unistr('\000a')||
-'*/'||unistr('\000a')||
-''||unistr('\000a')||
-'e_validation_failed exception;'||unistr('\000a')||
-'type t_tab is table of varchar2(4000) index by binary_integer;'||unistr('\000a')||
-''||unistr('\000a')||
-'function render_validation ('||unistr('\000a')||
-'  p_dynamic_action in apex_plugin.t_dynamic_action,'||unistr('\000a')||
-'  p_plugin         in apex_plugin.t_plugin '||unistr('\000a')||
-') return apex_plugin.t_dynamic_'||
-'action_render_result'||unistr('\000a')||
-'is'||unistr('\000a')||
-'  v_result apex_plugin.t_dynamic_action_render_result;'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-'  apex_css.add_file (  '||unistr('\000a')||
-'    p_name => ''pretius_validation_style'','||unistr('\000a')||
-'    p_directory => p_plugin.file_prefix, '||unistr('\000a')||
-'    p_version => null'||unistr('\000a')||
-'  );'||unistr('\000a')||
-''||unistr('\000a')||
-'  apex_javascript.add_library('||unistr('\000a')||
-'    p_name      => ''pretius_validation'','||unistr('\000a')||
-'    p_directory => p_plugin.file_prefix,'||unistr('\000a')||
-'    p_version   => NULL '||unistr('\000a')||
-'  );'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_result.ajax_identifier := APEX_'||
-'PLUGIN.GET_AJAX_IDENTifIER();'||unistr('\000a')||
-'  v_result.attribute_01 := p_dynamic_action.attribute_01;'||unistr('\000a')||
-'  v_result.attribute_02 := replace(replace(p_dynamic_action.attribute_02, chr(13), ''''), chr(10), '''');'||unistr('\000a')||
-'  v_result.attribute_04 := p_dynamic_action.attribute_04;'||unistr('\000a')||
-'  v_result.attribute_05 := p_dynamic_action.attribute_05;'||unistr('\000a')||
-'  v_result.attribute_06 := p_dynamic_action.attribute_06;'||unistr('\000a')||
-'  v_result.attribute_07 := p_dynamic'||
-'_action.attribute_07;'||unistr('\000a')||
-'  v_result.attribute_08 := NVL(p_dynamic_action.attribute_08, 0);'||unistr('\000a')||
-'  v_result.attribute_10 := p_plugin.attribute_01;'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_result.javascript_function := ''function() { pretius_validation(this, ''''''||p_plugin.file_prefix||'''''');}'';    '||unistr('\000a')||
-''||unistr('\000a')||
-'  APEX_PLUGIN_UTIL.DEBUG_DYNAMIC_ACTION ('||unistr('\000a')||
-'    p_plugin         => p_plugin,'||unistr('\000a')||
-'    p_dynamic_action => p_dynamic_action'||unistr('\000a')||
-'  );  '||unistr('\000a')||
-''||unistr('\000a')||
-'  return v_result;'||unistr('\000a')||
-''||unistr('\000a')||
-'EX'||
-'CEPTION'||unistr('\000a')||
-'  WHEN OTHERS then'||unistr('\000a')||
-'    htp.p( SQLERRM );'||unistr('\000a')||
-'    return v_result;'||unistr('\000a')||
-'end render_validation;'||unistr('\000a')||
-''||unistr('\000a')||
-'FUNCTION GET_VALUE ('||unistr('\000a')||
-'  P_NAME IN VARCHAR2 )'||unistr('\000a')||
-'  RETURN VARCHAR2'||unistr('\000a')||
-'IS'||unistr('\000a')||
-'  v_value VARCHAR2(32767);'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-'  v_value := V(P_NAME);'||unistr('\000a')||
-'  '||unistr('\000a')||
-'  RETURN CASE'||unistr('\000a')||
-'    WHEN v_value = ''%null%'' then NULL'||unistr('\000a')||
-'    ELSE v_value'||unistr('\000a')||
-'  end;'||unistr('\000a')||
-'end GET_VALUE;'||unistr('\000a')||
-''||unistr('\000a')||
-'function current_time_ms'||unistr('\000a')||
-'  return number'||unistr('\000a')||
-'is'||unistr('\000a')||
-'  out_result number;'||unistr('\000a')||
-'begin'||unistr('\000a')||
-'  select '||unistr('\000a')||
-'    extr'||
-'act(day from(systimestamp - to_timestamp(''1970-01-01'', ''YYYY-MM-DD''))) * 86400000 + to_number(to_char(sys_extract_utc(systimestamp), ''SSSSSFF3''))'||unistr('\000a')||
-'  into '||unistr('\000a')||
-'    out_result'||unistr('\000a')||
-'  from '||unistr('\000a')||
-'    dual;'||unistr('\000a')||
-'    '||unistr('\000a')||
-'  return out_result;'||unistr('\000a')||
-'end current_time_ms;'||unistr('\000a')||
-''||unistr('\000a')||
-'function perform_binds('||unistr('\000a')||
-'  p_string in varchar2,'||unistr('\000a')||
-'  p_escape in boolean default false'||unistr('\000a')||
-') return varchar2 '||unistr('\000a')||
-'is'||unistr('\000a')||
-'  v_item_names DBMS_SQL.VARCHAR2_TABLE;'||unistr('\000a')||
-'  '||unistr('\000a')||
-'  v_item_value v'||
-'archar2(100);'||unistr('\000a')||
-'  v_string varchar2(32000);'||unistr('\000a')||
-'  v_test_number number;'||unistr('\000a')||
-'  v_isnumber boolean := false;'||unistr('\000a')||
-'begin'||unistr('\000a')||
-'  v_string := p_string;'||unistr('\000a')||
-'  v_item_names := WWV_FLOW_UTILITIES.GET_BINDS( v_string ); '||unistr('\000a')||
-'  '||unistr('\000a')||
-'  for i in 1..v_item_names.count loop'||unistr('\000a')||
-'  '||unistr('\000a')||
-'    v_item_value := APEX_UTIL.GET_SESSION_STATE ('||unistr('\000a')||
-'      p_item => ltrim(v_item_names(i), '':'')'||unistr('\000a')||
-'    );'||unistr('\000a')||
-''||unistr('\000a')||
-'    if p_escape then'||unistr('\000a')||
-'      --jesli w sesji jest uzyty apostrof, we'||
-'-escape-uj go'||unistr('\000a')||
-'      v_item_value := replace(v_item_value, chr(39), chr(39)||chr(39));'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'    if v_item_value is null then'||unistr('\000a')||
-'      v_string := replace(v_string, v_item_names(i), ''NULL'');'||unistr('\000a')||
-'      continue;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'    begin'||unistr('\000a')||
-'      v_test_number := to_number(v_item_value);  '||unistr('\000a')||
-'      v_isnumber := true;'||unistr('\000a')||
-'    exception'||unistr('\000a')||
-'      when others then'||unistr('\000a')||
-'        v_isnumber := false;'||unistr('\000a')||
-'    end;'||unistr('\000a')||
-''||unistr('\000a')||
-'    if v_isnumb'||
-'er then'||unistr('\000a')||
-'      v_string := replace(v_string, v_item_names(i), v_item_value);'||unistr('\000a')||
-'    else'||unistr('\000a')||
-'      v_string := replace(v_string, v_item_names(i), chr(39)||v_item_value||chr(39));'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-'  '||unistr('\000a')||
-'  end loop;'||unistr('\000a')||
-'  '||unistr('\000a')||
-'  v_string := apex_plugin_util.replace_substitutions ('||unistr('\000a')||
-'    p_value => v_string,'||unistr('\000a')||
-'    p_escape => true '||unistr('\000a')||
-'  );'||unistr('\000a')||
-'  '||unistr('\000a')||
-'  return v_string;'||unistr('\000a')||
-'  '||unistr('\000a')||
-'end perform_binds;'||unistr('\000a')||
-''||unistr('\000a')||
-'function get_func_boolean_result('||unistr('\000a')||
-'  p_code in v'||
-'archar2'||unistr('\000a')||
-') return boolean'||unistr('\000a')||
-'is'||unistr('\000a')||
-'  v_func_block varchar2(32000);'||unistr('\000a')||
-'  v_result varchar2(1);'||unistr('\000a')||
-'  v_code varchar2(32000);'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-'  '||unistr('\000a')||
-'  v_code := perform_binds( p_code, true );'||unistr('\000a')||
-'  v_code := replace(v_code, ''declare'', ''DECLARE'');'||unistr('\000a')||
-'  v_code := replace(v_code, ''begin'', ''BEGIN'');'||unistr('\000a')||
-''||unistr('\000a')||
-'  if instr(v_code, ''DECLARE'') > 0 then'||unistr('\000a')||
-'    v_code := replace(v_code, ''DECLARE'', ''function test return boolean is'');'||unistr('\000a')||
-'  elsif instr(v_code, '''||
-'BEGIN'') > 0 then'||unistr('\000a')||
-'    v_code := replace(v_code, ''BEGIN'', ''function test return boolean is begin'');'||unistr('\000a')||
-'  else'||unistr('\000a')||
-'    v_code := ''function test return boolean is begin ''||v_code||'' end;'';'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_func_block := '''||unistr('\000a')||
-'    declare'||unistr('\000a')||
-'      v_result boolean;'||unistr('\000a')||
-'      ''||v_code||'''||unistr('\000a')||
-'    begin'||unistr('\000a')||
-'      v_result := test();'||unistr('\000a')||
-''||unistr('\000a')||
-'      if v_result then'||unistr('\000a')||
-'        :out := 1;'||unistr('\000a')||
-'      else'||unistr('\000a')||
-'        :out := 0;'||unistr('\000a')||
-'      end if;'||unistr('\000a')||
-'    end; '||unistr('\000a')||
-'  '''||
-';'||unistr('\000a')||
-'  --htp.p(v_func_block);'||unistr('\000a')||
-'  execute immediate v_func_block using out v_result;'||unistr('\000a')||
-''||unistr('\000a')||
-'  if v_result = 1 then'||unistr('\000a')||
-'    return true;'||unistr('\000a')||
-'  else'||unistr('\000a')||
-'    return false;'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'end get_func_boolean_result;'||unistr('\000a')||
-''||unistr('\000a')||
-'function get_plsql_expression_result('||unistr('\000a')||
-'  p_expression in varchar2'||unistr('\000a')||
-') return boolean'||unistr('\000a')||
-'is'||unistr('\000a')||
-'  v_expression varchar2(32000);'||unistr('\000a')||
-'  v_func_block varchar2(32000);'||unistr('\000a')||
-'  v_result varchar2(1);'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-'  v_expression := perform_binds( p'||
-'_expression, true );'||unistr('\000a')||
-'  v_func_block := '''||unistr('\000a')||
-'    begin '||unistr('\000a')||
-'      if ''||v_expression||'' then '||unistr('\000a')||
-'        return 1; '||unistr('\000a')||
-'      else '||unistr('\000a')||
-'       return 0; '||unistr('\000a')||
-'      end if;'||unistr('\000a')||
-'    end;'||unistr('\000a')||
-'  '';'||unistr('\000a')||
-' '||unistr('\000a')||
-'  v_result := APEX_PLUGIN_UTIL.GET_PLSQL_FUNCTION_RESULT( v_func_block );'||unistr('\000a')||
-''||unistr('\000a')||
-'  if v_result = ''1'' then'||unistr('\000a')||
-'    return true;'||unistr('\000a')||
-'  else'||unistr('\000a')||
-'    return false;'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'end get_plsql_expression_result;'||unistr('\000a')||
-''||unistr('\000a')||
-'function getItemFormatMask('||unistr('\000a')||
-'  p_item_id in varch'||
-'ar2'||unistr('\000a')||
-') return varchar2 is'||unistr('\000a')||
-'  v_format_mask varchar2(200);'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-'  select '||unistr('\000a')||
-'    FORMAT_MASK '||unistr('\000a')||
-'  into'||unistr('\000a')||
-'    v_format_mask'||unistr('\000a')||
-'  from '||unistr('\000a')||
-'    APEX_APPLICATION_PAGE_ITEMS '||unistr('\000a')||
-'  where '||unistr('\000a')||
-'    application_id = :APP_ID'||unistr('\000a')||
-'    and page_id = :APP_PAGE_ID '||unistr('\000a')||
-'    and item_name = p_item_id;'||unistr('\000a')||
-''||unistr('\000a')||
-'  return v_format_mask;  '||unistr('\000a')||
-''||unistr('\000a')||
-'EXCEPTION'||unistr('\000a')||
-'  WHEN OTHERS then'||unistr('\000a')||
-'    return null;'||unistr('\000a')||
-'end getItemFormatMask;'||unistr('\000a')||
-''||unistr('\000a')||
-'function selectCountFromQuery('||unistr('\000a')||
-'  p_query in va'||
-'rchar2'||unistr('\000a')||
-') return number'||unistr('\000a')||
-'is'||unistr('\000a')||
-'  v_query varchar2(32000);'||unistr('\000a')||
-'  v_count number :=0;'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_query := perform_binds( p_query, true );'||unistr('\000a')||
-'  v_query := ''select count(1) from (''|| v_query ||'')'';'||unistr('\000a')||
-''||unistr('\000a')||
-'  execute immediate v_query into v_count;'||unistr('\000a')||
-''||unistr('\000a')||
-'  return v_count;'||unistr('\000a')||
-''||unistr('\000a')||
-'end selectCountFromQuery;'||unistr('\000a')||
-''||unistr('\000a')||
-'function rtrim_ws('||unistr('\000a')||
-'  p_val in varchar2'||unistr('\000a')||
-') return varchar2'||unistr('\000a')||
-'as'||unistr('\000a')||
-''||unistr('\000a')||
-'begin'||unistr('\000a')||
-'  return rtrim(replace(replace(p_val,chr(13),null),chr(10),nu'||
-'ll));'||unistr('\000a')||
-'end rtrim_ws;'||unistr('\000a')||
-''||unistr('\000a')||
-'procedure isRunConditionMatched('||unistr('\000a')||
-'  p_condition_type_code in varchar2,'||unistr('\000a')||
-'  p_condition_expression1 in varchar2,'||unistr('\000a')||
-'  p_condition_expression2 in varchar2,'||unistr('\000a')||
-'  p_out_run out number,'||unistr('\000a')||
-'  p_out_msg out varchar2'||unistr('\000a')||
-''||unistr('\000a')||
-')'||unistr('\000a')||
-'is'||unistr('\000a')||
-'  v_cond_type varchar2(100) := p_condition_type_code;'||unistr('\000a')||
-'  v_cond_1  VARCHAR2(32767) := WWV_FLOW.DO_SUBSTITUTIONS(p_condition_expression1);'||unistr('\000a')||
-'  v_cond_2  VARCHAR2(32767) := WWV_FLOW'||
-'.DO_SUBSTITUTIONS(p_condition_expression2);'||unistr('\000a')||
-'  e_stop_processing exception;'||unistr('\000a')||
-'  e_return_true exception;'||unistr('\000a')||
-'  e_return_false exception;'||unistr('\000a')||
-'  e_unkown_condition exception;'||unistr('\000a')||
-'  e_return_no_condition exception;'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_test_boolean boolean;'||unistr('\000a')||
-'  v_test_result varchar2(3200);'||unistr('\000a')||
-'  v_test_number number;'||unistr('\000a')||
-''||unistr('\000a')||
-'  l_val varchar2(4000);'||unistr('\000a')||
-'  l_len number;'||unistr('\000a')||
-''||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-''||unistr('\000a')||
-'  if p_condition_type_code is null then'||unistr('\000a')||
-'    raise e_return_no_condition'||
-';'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  if v_cond_type = ''NEVER'' then'||unistr('\000a')||
-'    raise e_return_false;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''ALWAYS'' then'||unistr('\000a')||
-'    raise e_return_true;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type IN (''SQL_EXPRESION'', ''SQL_EXPRESSION'') then'||unistr('\000a')||
-'    v_test_result := ''select 1 from dual where ''||perform_binds( v_cond_1 );'||unistr('\000a')||
-''||unistr('\000a')||
-'    if selectCountFromQuery( v_test_result ) = 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''FUNCTI'||
-'ON_BODY'' then'||unistr('\000a')||
-''||unistr('\000a')||
-'    v_test_boolean := get_func_boolean_result( v_cond_1 );'||unistr('\000a')||
-''||unistr('\000a')||
-'    if NOT v_test_boolean then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''ITEM_IS_NOT_NULL'' then '||unistr('\000a')||
-'    if GET_VALUE( v_cond_1 ) is null then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type =''EXISTS'' then'||unistr('\000a')||
-'    if selectCountFromQuery( v_cond_1 ) <= 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if'||
-';'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type =''NOT_EXISTS'' then'||unistr('\000a')||
-'    if selectCountFromQuery( v_cond_1 ) > 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type =''VAL_OF_ITEM_IN_COND_EQ_COND2'' then'||unistr('\000a')||
-'    if GET_VALUE( v_cond_1 ) <> v_cond_2 OR GET_VALUE( v_cond_1 ) is null then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;      '||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type in (''PLSQL_EXPRESSION'',''PLSQL_EXPRESION'') then'||unistr('\000a')||
-'    if not get_pls'||
-'ql_expression_result( v_cond_1 ) then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type IN (''ITEM_IS_NOT_ZERO'',''ITEM_NOT_ZERO'')  then'||unistr('\000a')||
-'    if NVL( V( RTRIM_WS(v_cond_1) ),''x'' ) = ''0'' then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''ITEM_CONTAINS_NO_SPACES'' then'||unistr('\000a')||
-'    if INSTR(REPLACE(V(WWV_FLOW.DO_SUBSTITUTIONS(RTRIM_WS(v_cond_1),''TEXT'')),''%null%'',NULL),'' '') > 0 then'||unistr('\000a')||
-'  '||
-'     raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type IN (''ITEM_NOT_NULL_OR_ZERO'', ''ITEM_IS_NOT_NULL_OR_ZERO'', ''FLOW_ITEM_IS_NOT_NULL_OR_ZERO'') then'||unistr('\000a')||
-'    if V(RTRIM_WS(v_cond_1)) IS NULL OR V(RTRIM_WS(v_cond_1)) = ''0'' then'||unistr('\000a')||
-'        raise e_return_false;'||unistr('\000a')||
-'    end if;    '||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''ITEM_IS_ALPHANUMERIC'' then'||unistr('\000a')||
-''||unistr('\000a')||
-'    l_len := NVL(LENGTH(REPLACE(V(WWV_FLOW.DO_SUBSTITUTIONS(UPPER(RTRIM_WS'||
-'(v_cond_1)),''TEXT'')),''%null%'',NULL)),0);'||unistr('\000a')||
-'    l_val := REPLACE(V(UPPER(v_cond_1)),''%null%'',NULL);'||unistr('\000a')||
-''||unistr('\000a')||
-'    FOR J IN 1..L_LEN LOOP'||unistr('\000a')||
-'      if INSTR(''abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_'',SUBSTR(L_VAL,J,1)) = 0 then'||unistr('\000a')||
-'        raise e_return_false;'||unistr('\000a')||
-'      end if;'||unistr('\000a')||
-'    end LOOP;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''ITEM_IS_NUMERIC'' then'||unistr('\000a')||
-'    begin'||unistr('\000a')||
-'      v_test_number := REPLACE(V(WWV_FLOW.DO_SUBSTIT'||
-'UTIONS(RTRIM_WS(v_cond_1),''TEXT'')),''%null%'',NULL);'||unistr('\000a')||
-'    exception '||unistr('\000a')||
-'      when others then'||unistr('\000a')||
-'        raise e_return_false;'||unistr('\000a')||
-'    end;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''ITEM_IS_NOT_NUMERIC'' then'||unistr('\000a')||
-'      begin'||unistr('\000a')||
-'         v_test_number := REPLACE(V(WWV_FLOW.DO_SUBSTITUTIONS(RTRIM_WS( v_cond_1 ),''TEXT'')),''%null%'',NULL);'||unistr('\000a')||
-'         raise e_return_false; '||unistr('\000a')||
-'      exception when others then'||unistr('\000a')||
-'         null;'||unistr('\000a')||
-'      end;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_'||
-'cond_type IN (''VAL_OF_ITEM_IN_COND_NOT_EQ_COND2'', ''VAL_OF_ITEM_IN_COND_NOT_EQ_COND_TEXT'', ''VALUE_OF_ITEM_NAMED_IN_COND1_NOT_EQUAL_TEXT_IN_COND2'') then'||unistr('\000a')||
-'    if NVL(V(RTRIM_WS( v_cond_1 )),''Mjhakb'') = NVL(WWV_FLOW.DO_SUBSTITUTIONS( v_cond_1 ),''mjHbka'') then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type IN (''ITEM_IS_NULL'',''FLOW_ITEM_IS_NULL'') then'||unistr('\000a')||
-'    if REPLACE(V(RTRIM_WS( v_cond_1 )),'||
-'''%null%'',NULL) IS NULL then'||unistr('\000a')||
-'      null;'||unistr('\000a')||
-'    ELSE'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type IN (''ITEM_IS_NULL_OR_ZERO'') then'||unistr('\000a')||
-'    if V(RTRIM_WS( v_cond_1 )) IS NULL OR V(RTRIM_WS( v_cond_1 )) = ''0'' then'||unistr('\000a')||
-'      null;'||unistr('\000a')||
-'    ELSE'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type IN (''ITEM_IS_ZERO'') then'||unistr('\000a')||
-'    if NVL(V(RTRIM_WS( v_cond_1 )),''x'') <> ''0'' then'||unistr('\000a')||
-'      raise e_return_'||
-'false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''VALUE_OF_ITEM_IN_CONDITION_IN_COLON_DELIMITED_LIST'' then'||unistr('\000a')||
-'    IF INSTR('':''||WWV_FLOW.DO_SUBSTITUTIONS(v_cond_2,''TEXT'')||'':'','':''||V(RTRIM_WS( v_cond_1 ))||'':'') > 0 THEN'||unistr('\000a')||
-'      null;'||unistr('\000a')||
-'    ELSE'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    END IF;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_cond_type = ''VALUE_OF_ITEM_IN_CONDITION_NOT_IN_COLON_DELIMITED_LIST'' then'||unistr('\000a')||
-'    if instr('':''||WWV_FLOW.DO_SUBSTITUTIONS('||
-' v_cond_2,''TEXT'')||'':'','':''||V(RTRIM_WS( v_cond_1 ))||'':'') > 0 THEN'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    else'||unistr('\000a')||
-'      null;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  else'||unistr('\000a')||
-'    raise e_unkown_condition;'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  raise e_return_true;'||unistr('\000a')||
-''||unistr('\000a')||
-'EXCEPTION'||unistr('\000a')||
-'  when e_return_no_condition then'||unistr('\000a')||
-'    p_out_run := 1;'||unistr('\000a')||
-'    p_out_msg := ''No condition for validation'';'||unistr('\000a')||
-'  when e_return_true then'||unistr('\000a')||
-'    p_out_run := 1;'||unistr('\000a')||
-'    p_out_msg := ''Condition [''||v_cond_ty'||
-'pe||''] passed.'';'||unistr('\000a')||
-'  when e_return_false then'||unistr('\000a')||
-'    p_out_run := 0;'||unistr('\000a')||
-'    p_out_msg := ''Condition [''||v_cond_type||''] not passed. Validation is not executed.'';'||unistr('\000a')||
-'  when e_unkown_condition then'||unistr('\000a')||
-'    p_out_run := 2;'||unistr('\000a')||
-'    p_out_msg := ''Condition type [''|| v_cond_type || ''] not suppoerted. Sorry'';'||unistr('\000a')||
-'  WHEN OTHERS then'||unistr('\000a')||
-'    p_out_run := 2;'||unistr('\000a')||
-'    p_out_msg := ''Unexpected error: ''||SQLERRM;'||unistr('\000a')||
-'end isRunConditionMatched;'||unistr('\000a')||
-''||unistr('\000a')||
-''||
-'procedure validate('||unistr('\000a')||
-'  P_VALIDATION_TYPE in varchar2,'||unistr('\000a')||
-'  p_validation_name in varchar2,'||unistr('\000a')||
-'  p_validation_expression1 in varchar2,'||unistr('\000a')||
-'  p_validation_expression2 in varchar2,'||unistr('\000a')||
-'  p_validation_error_text in varchar2,'||unistr('\000a')||
-'  p_out_error_text out varchar2,'||unistr('\000a')||
-'  p_out_status out number,'||unistr('\000a')||
-'  p_out_msg out varchar2'||unistr('\000a')||
-')'||unistr('\000a')||
-'is'||unistr('\000a')||
-'  L_EXPRESSION1 VARCHAR2(32767) := WWV_FLOW.DO_SUBSTITUTIONS(p_validation_expression1);'||unistr('\000a')||
-'  L_EXPRESSION2 V'||
-'ARCHAR2(32767) := WWV_FLOW.DO_SUBSTITUTIONS(p_validation_expression2);'||unistr('\000a')||
-'  L_VALUE VARCHAR2(32767);'||unistr('\000a')||
-'  L_LEN number;'||unistr('\000a')||
-'  l_boolean boolean;'||unistr('\000a')||
-'  '||unistr('\000a')||
-'  v_val_type varchar2(3200) := P_VALIDATION_TYPE;'||unistr('\000a')||
-'  v_val_name varchar2(3200) := P_VALIDATION_name;'||unistr('\000a')||
-''||unistr('\000a')||
-'  e_return_true exception;'||unistr('\000a')||
-'  e_return_false exception;'||unistr('\000a')||
-'  e_unknown_validation exception;'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_test_number number;'||unistr('\000a')||
-'  v_test_date date;'||unistr('\000a')||
-'  v_test_result varchar2(32'||
-'00);'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-'  p_out_error_text := p_validation_error_text;'||unistr('\000a')||
-''||unistr('\000a')||
-'  --obsluga walidacji wbudowanych'||unistr('\000a')||
-'  if P_VALIDATION_TYPE = ''NATIVE_NUMBER_FIELD'' then'||unistr('\000a')||
-'    p_out_error_text := REPLACE(APEX_LANG.MESSAGE(''APEX.NUMBER_FIELD.VALUE_INVALID''), ''APEX.NUMBER_FIELD.VALUE_INVALID'', ''#LABEL# must be Numeric.'');'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif P_VALIDATION_TYPE = ''ITEM_REQUIRED'' then'||unistr('\000a')||
-'    p_out_error_text := REPLACE(APEX_LANG.MESSAGE(''APEX'||
-'.PAGE_ITEM_IS_REQUIRED'', L_EXPRESSION2), ''APEX.PAGE_ITEM_IS_REQUIRED'', ''#LABEL# must have some value.'');'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif P_VALIDATION_TYPE = ''NATIVE_DATE_PICKER'' then'||unistr('\000a')||
-'    p_out_error_text := REPLACE(APEX_LANG.MESSAGE(''APEX.DATEPICKER_VALUE_INVALID'', L_EXPRESSION2), ''APEX.DATEPICKER_VALUE_INVALID'', ''#LABEL# does not match format ''||L_EXPRESSION2||''.'');'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-'  --//obsluga walidacji wbudowanych    '||unistr('\000a')||
-''||unistr('\000a')||
-'  '||
-'if v_val_type =''EXISTS'' then'||unistr('\000a')||
-'    if selectCountFromQuery( L_EXPRESSION1 ) <= 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''NOT_EXISTS'' then'||unistr('\000a')||
-'    if selectCountFromQuery( L_EXPRESSION1 ) > 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''ITEM_NOT_ZERO'' then'||unistr('\000a')||
-'    if NOT NVL(GET_VALUE(L_EXPRESSION1),''x'') != ''0'' then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;    '||unistr('\000a')||
-''||
-''||unistr('\000a')||
-'  elsif v_val_type in (''ITEM_NOT_NULL'', ''ITEM_REQUIRED'') then'||unistr('\000a')||
-'    if GET_VALUE(L_EXPRESSION1) IS NULL then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''ITEM_NOT_NULL_OR_ZERO'' then'||unistr('\000a')||
-'    L_VALUE := GET_VALUE(L_EXPRESSION1);'||unistr('\000a')||
-''||unistr('\000a')||
-'    if L_VALUE IS NULL OR L_VALUE = ''0'' then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type = ''ITEM_IS_ALPHANUMERIC'' then'||unistr('\000a')||
-'    L_VALUE := GET_VALUE('||
-'L_EXPRESSION1);'||unistr('\000a')||
-'    L_LEN   := NVL(LENGTH(L_VALUE),0);'||unistr('\000a')||
-'    FOR J IN 1 .. L_LEN LOOP '||unistr('\000a')||
-'      if INSTR(''abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_'',SUBSTR(L_VALUE,J,1)) = 0 then'||unistr('\000a')||
-'        raise e_return_false;'||unistr('\000a')||
-'      end if;'||unistr('\000a')||
-'    end LOOP;  '||unistr('\000a')||
-'    '||unistr('\000a')||
-'  elsif v_val_type in (''NATIVE_NUMBER_FIELD'', ''ITEM_IS_NUMERIC'')  then'||unistr('\000a')||
-'    L_VALUE := GET_VALUE(L_EXPRESSION1);'||unistr('\000a')||
-'    BEGIN'||unistr('\000a')||
-'      v_test_numb'||
-'er := to_number( replace(replace(L_VALUE, '','', NULL), ''.'', null) );'||unistr('\000a')||
-'    EXCEPTION'||unistr('\000a')||
-'      WHEN OTHERS then'||unistr('\000a')||
-'        raise e_return_false;'||unistr('\000a')||
-'    end;'||unistr('\000a')||
-'    '||unistr('\000a')||
-'  elsif v_val_type =''ITEM_CONTAINS_NO_SPACES'' then'||unistr('\000a')||
-'    if INSTR(GET_VALUE(L_EXPRESSION1),'' '') > 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type in (''ITEM_IS_DATE'', ''NATIVE_DATE_PICKER'') then'||unistr('\000a')||
-'    L_VALUE := GET_VALUE(L_EXPRESSION1);'||unistr('\000a')||
-''||
-'    if L_VALUE is not null then'||unistr('\000a')||
-'      begin'||unistr('\000a')||
-'        v_test_date := to_date(L_VALUE, nvl(getItemFormatMask(L_EXPRESSION1),''DD-MON-RR''));'||unistr('\000a')||
-'      exception'||unistr('\000a')||
-'        when others then'||unistr('\000a')||
-'          raise e_return_false;'||unistr('\000a')||
-'      end;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''ITEM_IS_TIMESTAMP'' then'||unistr('\000a')||
-'    raise e_unknown_validation;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type IN (''SQL_EXPRESION'', ''SQL_EXPRESSION'') then'||unistr('\000a')||
-'    v_test_result := ''sele'||
-'ct 1 from dual where ''||perform_binds( L_EXPRESSION1, true );'||unistr('\000a')||
-''||unistr('\000a')||
-'    if selectCountFromQuery( v_test_result ) = 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type in (''PLSQL_EXPRESION'', ''PLSQL_EXPRESSION'') then'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    if not get_plsql_expression_result( L_EXPRESSION1 ) then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''PLSQL_ERROR'' then'||unistr('\000a')||
-'    raise e_return_false;'||unistr('\000a')||
-''||unistr('\000a')||
-'  '||
-'elsif v_val_type =''FUNC_BODY_RETURNING_ERR_TEXT'' then'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    v_test_result := APEX_PLUGIN_UTIL.GET_PLSQL_FUNCTION_RESULT( L_EXPRESSION1 );'||unistr('\000a')||
-''||unistr('\000a')||
-'    if v_test_result is not null then'||unistr('\000a')||
-'      p_out_error_text := v_test_result; '||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''FUNC_BODY_RETURNING_BOOLEAN'' then'||unistr('\000a')||
-'    l_boolean := get_func_boolean_result( L_EXPRESSION1 );'||unistr('\000a')||
-''||unistr('\000a')||
-'    if not l_boolean t'||
-'hen'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''REGULAR_EXPRESSION'' then'||unistr('\000a')||
-'    L_VALUE := GET_VALUE(L_EXPRESSION1);'||unistr('\000a')||
-'    if not REGEXP_LIKE (l_value, l_expression2) then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''ITEM_IN_VALIDATION_IN_STRING2'' then  '||unistr('\000a')||
-'    if instr(L_EXPRESSION2, get_value(L_EXPRESSION1)) = 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_'||
-'val_type =''ITEM_IN_VALIDATION_NOT_IN_STRING2'' then'||unistr('\000a')||
-'    if instr(L_EXPRESSION2, get_value(L_EXPRESSION1)) > 0 then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''ITEM_IN_VALIDATION_EQ_STRING2'' then'||unistr('\000a')||
-'    L_VALUE := GET_VALUE(L_EXPRESSION1);'||unistr('\000a')||
-''||unistr('\000a')||
-'    if L_EXPRESSION2 = l_value then'||unistr('\000a')||
-'      l_boolean := true;'||unistr('\000a')||
-'    else'||unistr('\000a')||
-'      l_boolean := false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'    if not l_boolean then'||unistr('\000a')||
-'      raise'||
-' e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-'    '||unistr('\000a')||
-'  elsif v_val_type =''ITEM_IN_VALIDATION_NOT_EQ_STRING2'' then'||unistr('\000a')||
-'    if L_EXPRESSION2 = get_value(L_EXPRESSION1) then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''ITEM_IN_VALIDATION_CONTAINS_ONLY_CHAR_IN_STRING2'' then'||unistr('\000a')||
-'    l_value := get_value(l_expression1);'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    if l_value is null then'||unistr('\000a')||
-'      l_boolean := true;'||unistr('\000a')||
-'    else'||unistr('\000a')||
-'      for i in 1 .. length('||
-'l_value) loop'||unistr('\000a')||
-'        if instr(l_expression2, substr(l_value, i, 1)) = 0 then'||unistr('\000a')||
-'          l_boolean := false;'||unistr('\000a')||
-'          exit;'||unistr('\000a')||
-'        end if;'||unistr('\000a')||
-'      end loop;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    if not l_boolean then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''ITEM_IN_VALIDATION_CONTAINS_AT_LEAST_ONE_CHAR_IN_STRING2'' then'||unistr('\000a')||
-'    l_boolean := false;'||unistr('\000a')||
-'    l_value   := get_value(l_expression1);'||unistr('\000a')||
-''||unistr('\000a')||
-'    if l'||
-'_value is null then'||unistr('\000a')||
-'      l_boolean := false;'||unistr('\000a')||
-'    else'||unistr('\000a')||
-'      for i in 1..length(l_value) loop'||unistr('\000a')||
-'        if instr(l_expression2, substr(l_value, i, 1)) > 0 then'||unistr('\000a')||
-'          l_boolean := true;'||unistr('\000a')||
-'          exit;'||unistr('\000a')||
-'        end if;'||unistr('\000a')||
-'      end loop;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    if not l_boolean then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  elsif v_val_type =''ITEM_IN_VALIDATION_CONTAINS_NO_CHAR_IN_STRING2'' then'||unistr('\000a')||
-'  '||unistr('\000a')||
-'    '||
-'l_value := get_value(l_expression1);'||unistr('\000a')||
-'    if l_value is null then'||unistr('\000a')||
-'      l_boolean := true;'||unistr('\000a')||
-'    else'||unistr('\000a')||
-'      for i in 1..length(l_value) loop'||unistr('\000a')||
-'        if instr(l_expression2, substr(l_value, i, 1)) > 0 then'||unistr('\000a')||
-'          l_boolean := false;'||unistr('\000a')||
-'          exit;'||unistr('\000a')||
-'        end if;'||unistr('\000a')||
-'      end loop;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    if not l_boolean then'||unistr('\000a')||
-'      raise e_return_false;'||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  else'||unistr('\000a')||
-'    raise e_unknown_validatio'||
-'n;'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  raise e_return_true;'||unistr('\000a')||
-''||unistr('\000a')||
-'EXCEPTION'||unistr('\000a')||
-'  when e_return_true then'||unistr('\000a')||
-'    p_out_status := 1;'||unistr('\000a')||
-'    p_out_msg := ''Validation "''|| v_val_name ||''" [''|| v_val_type ||''] passed'';'||unistr('\000a')||
-'  when e_return_false then'||unistr('\000a')||
-'    p_out_status := 0;'||unistr('\000a')||
-'    p_out_msg := ''Validation "''|| v_val_name ||''" [''|| v_val_type ||''] failed'';'||unistr('\000a')||
-'  when e_unknown_validation then'||unistr('\000a')||
-'    p_out_status := 2;'||unistr('\000a')||
-'    p_out_msg := ''Validation type [''|'||
-'| v_val_type || ''] not suppoerted. Sorry'';'||unistr('\000a')||
-'  WHEN OTHERS then'||unistr('\000a')||
-'    p_out_status := 2;'||unistr('\000a')||
-'    p_out_error_text := ''Error occured while performin validation: ''||replace(replace(DBMS_UTILITY.FORMAT_ERROR_BACKTRACE, chr(13), '' ''), chr(10), '' '');'||unistr('\000a')||
-'    p_out_msg := ''Error occured while performin validation: ''||replace(replace(DBMS_UTILITY.FORMAT_ERROR_BACKTRACE, chr(13), '' ''), chr(10), '' '');'||unistr('\000a')||
-'end validate;'||unistr('\000a')||
-''||unistr('\000a')||
-'p'||
-'rocedure collectLogs('||unistr('\000a')||
-'  pi_names IN t_tab,'||unistr('\000a')||
-'  pi_codes IN t_tab,'||unistr('\000a')||
-'  pi_statuses IN t_tab,'||unistr('\000a')||
-'  pi_msges IN t_tab,'||unistr('\000a')||
-'  pi_conditions IN t_tab,'||unistr('\000a')||
-'  po_exception OUT varchar2,'||unistr('\000a')||
-'  po_json OUT varchar2'||unistr('\000a')||
-') is'||unistr('\000a')||
-'  v_logs_json varchar2(32000);'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-'  if pi_names.count > 0 then'||unistr('\000a')||
-'    for i in pi_names.first..pi_names.last loop'||unistr('\000a')||
-'      v_logs_json := v_logs_json||''{'||unistr('\000a')||
-'        "validationCode": "''||pi_codes(i)||''",'||unistr('\000a')||
-'        "v'||
-'alidationName": "''||pi_names(i)||''",'||unistr('\000a')||
-'        "validationMsg": "''||pi_msges(i)||''",'||unistr('\000a')||
-'        "validationCondition": "''||pi_conditions(i)||''",'||unistr('\000a')||
-'        "passed": ''||pi_statuses(i)||'''||unistr('\000a')||
-'      }'';'||unistr('\000a')||
-'    '||unistr('\000a')||
-'      if i <> pi_names.last then'||unistr('\000a')||
-'        v_logs_json := v_logs_json||'','';'||unistr('\000a')||
-'      end if;'||unistr('\000a')||
-'    end loop;'||unistr('\000a')||
-''||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  po_json := v_logs_json;'||unistr('\000a')||
-''||unistr('\000a')||
-'EXCEPTION'||unistr('\000a')||
-'  WHEN OTHERS then'||unistr('\000a')||
-'    po_exception := SQLERRM;'||unistr('\000a')||
-'end col'||
-'lectLogs;'||unistr('\000a')||
-''||unistr('\000a')||
-'function getFieldsToReValidate('||unistr('\000a')||
-'  p_item_name in varchar2'||unistr('\000a')||
-') return varchar2 is'||unistr('\000a')||
-'  v_items_to_validate varchar2(3200);'||unistr('\000a')||
-'BEGIN'||unistr('\000a')||
-''||unistr('\000a')||
-'  select'||unistr('\000a')||
-'    listagg(''#''||ASSOCIATED_ITEM, '','') within group( order by 1 )'||unistr('\000a')||
-'  into '||unistr('\000a')||
-'    v_items_to_validate'||unistr('\000a')||
-'  from ('||unistr('\000a')||
-'    select '||unistr('\000a')||
-'      distinct'||unistr('\000a')||
-'        ASSOCIATED_ITEM'||unistr('\000a')||
-'    from'||unistr('\000a')||
-'      APEX_APPLICATION_PAGE_VAL aapv'||unistr('\000a')||
-'    where '||unistr('\000a')||
-'      application_id = :APP_ID'||unistr('\000a')||
-'      and '||
-'page_id = :APP_PAGE_ID'||unistr('\000a')||
-'      and instr('':''||CONDITION_EXPRESSION1||CONDITION_EXPRESSION2||VALIDATION_EXPRESSION1||VALIDATION_EXPRESSION2||'':'', p_item_name) > 0'||unistr('\000a')||
-'      and ASSOCIATED_ITEM <> p_item_name  '||unistr('\000a')||
-'  );'||unistr('\000a')||
-''||unistr('\000a')||
-'  return v_items_to_validate;'||unistr('\000a')||
-''||unistr('\000a')||
-'end getFieldsToReValidate;'||unistr('\000a')||
-''||unistr('\000a')||
-'function validation_result( '||unistr('\000a')||
-'  p_time in number,'||unistr('\000a')||
-'  p_item in varchar2,'||unistr('\000a')||
-'  p_passed in varchar2,'||unistr('\000a')||
-'  p_message in varchar2,'||unistr('\000a')||
-'  p_revalida'||
-'te in varchar2,'||unistr('\000a')||
-'  p_logs in varchar2'||unistr('\000a')||
-') return varchar2 is'||unistr('\000a')||
-'  v_time_mask varchar2(24) := ''999G999G999G999G990D0000'';'||unistr('\000a')||
-'begin'||unistr('\000a')||
-'  return '''||unistr('\000a')||
-'    {'||unistr('\000a')||
-'      "validation_result": {'||unistr('\000a')||
-'        "time": {'||unistr('\000a')||
-'          "ms": "''     ||replace(to_char(p_time, v_time_mask),'' '', '''')||''",'||unistr('\000a')||
-'          "seconds": "''||replace(to_char((p_time/1000), v_time_mask),'' '', '''')||''",'||unistr('\000a')||
-'          "minutes": "''||replace(to_char((p_time/1000/6'||
-'0), v_time_mask),'' '', '''')||''"'||unistr('\000a')||
-'        },'||unistr('\000a')||
-'        "item": "''||p_item||''",'||unistr('\000a')||
-'        "passed": ''||p_passed||'','||unistr('\000a')||
-'        "message": "''||p_message||''",'||unistr('\000a')||
-'        "revalidate": "''||p_revalidate||''",'||unistr('\000a')||
-'        "logs": [''||p_logs||'']'||unistr('\000a')||
-'      }'||unistr('\000a')||
-'    }'||unistr('\000a')||
-'  '';'||unistr('\000a')||
-'end;'||unistr('\000a')||
-''||unistr('\000a')||
-'function ajax_validation ('||unistr('\000a')||
-'  p_dynamic_action in apex_plugin.t_dynamic_action,'||unistr('\000a')||
-'  p_plugin         in apex_plugin.t_plugin '||unistr('\000a')||
-') return apex_plugin.t_dynamic_a'||
-'ction_ajax_result'||unistr('\000a')||
-'is'||unistr('\000a')||
-'  v_val_names t_tab;'||unistr('\000a')||
-'  v_val_statuses t_tab;'||unistr('\000a')||
-'  v_val_codes t_tab;'||unistr('\000a')||
-'  v_val_msges t_tab;'||unistr('\000a')||
-'  v_val_conditions t_tab;'||unistr('\000a')||
-'  v_revalidate number := NVL(p_dynamic_action.attribute_08, 0);'||unistr('\000a')||
-'  v_reval_fields varchar2(4000);'||unistr('\000a')||
-'  v_result apex_plugin.t_dynamic_action_ajax_result;'||unistr('\000a')||
-'  v_item_id varchar2(100) := apex_application.g_x01;'||unistr('\000a')||
-'  v_validation_msg varchar2(32000);'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_cond_out_msg varchar2('||
-'3200);'||unistr('\000a')||
-'  v_cond_out_run number;'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_val_out_msg varchar2(3200);'||unistr('\000a')||
-'  v_val_out_status number;'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_label varchar2(100);'||unistr('\000a')||
-'  '||unistr('\000a')||
-'  v_logs_json varchar2(32000);'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_log_exception varchar2(32000);'||unistr('\000a')||
-'  v_val_count number :=0;'||unistr('\000a')||
-'  e_validation_not_found exception;'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_val_error_text varchar2(32000);'||unistr('\000a')||
-'  v_itemsReValidate varchar2(32000);'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_time_start number;'||unistr('\000a')||
-'  v_time_end number;'||unistr('\000a')||
-'  v_time_diff number;'||unistr('\000a')||
-'begin'||unistr('\000a')||
-'  v'||
-'_time_start := current_time_ms();'||unistr('\000a')||
-''||unistr('\000a')||
-'  if v_revalidate = 1 then'||unistr('\000a')||
-'    v_reval_fields := getFieldsToReValidate(v_item_id);'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  BEGIN'||unistr('\000a')||
-'    select'||unistr('\000a')||
-'      LABEL'||unistr('\000a')||
-'    into'||unistr('\000a')||
-'      v_label'||unistr('\000a')||
-'    from'||unistr('\000a')||
-'      APEX_APPLICATION_PAGE_ITEMS'||unistr('\000a')||
-'    where'||unistr('\000a')||
-'      application_id = :APP_ID'||unistr('\000a')||
-'      and page_id = :APP_PAGE_ID'||unistr('\000a')||
-'      and ITEM_NAME = v_item_id;'||unistr('\000a')||
-''||unistr('\000a')||
-'  EXCEPTION'||unistr('\000a')||
-'    when no_data_found then'||unistr('\000a')||
-'      v_label := ''label no'||
-'t found'';'||unistr('\000a')||
-'    WHEN OTHERS then'||unistr('\000a')||
-'      v_label := SQLERRM;'||unistr('\000a')||
-'  end;'||unistr('\000a')||
-''||unistr('\000a')||
-'  for validation_row in ('||unistr('\000a')||
-'    select'||unistr('\000a')||
-'      *'||unistr('\000a')||
-'    from ('||unistr('\000a')||
-'      select '||unistr('\000a')||
-'        VALIDATION_TYPE_CODE,'||unistr('\000a')||
-'        VALIDATION_name,'||unistr('\000a')||
-'        validation_expression1,'||unistr('\000a')||
-'        validation_expression2,'||unistr('\000a')||
-'        VALIDATION_FAILURE_TEXT,'||unistr('\000a')||
-'        VALIDATION_SEQUENCE,'||unistr('\000a')||
-'        CONDITION_TYPE,'||unistr('\000a')||
-'        CONDITION_TYPE_CODE,'||unistr('\000a')||
-'        CONDITION_EXPRESSION1,'||unistr('\000a')||
-''||
-'        CONDITION_EXPRESSION2             '||unistr('\000a')||
-'      from'||unistr('\000a')||
-'        APEX_APPLICATION_PAGE_VAL aapv'||unistr('\000a')||
-'      where'||unistr('\000a')||
-'        aapv.application_id = :APP_ID'||unistr('\000a')||
-'        and aapv.page_id = :APP_PAGE_ID'||unistr('\000a')||
-'        and aapv.ASSOCIATED_ITEM = v_item_id'||unistr('\000a')||
-'        and ( '||unistr('\000a')||
-'          aapv.CONDITION_TYPE_CODE <> ''NEVER'' '||unistr('\000a')||
-'          OR aapv.CONDITION_TYPE_CODE is null'||unistr('\000a')||
-'        )'||unistr('\000a')||
-'      union all'||unistr('\000a')||
-''||unistr('\000a')||
-'      select'||unistr('\000a')||
-'        DISPLAY_AS_CODE '||
-'VALIDATION_TYPE_CODE,'||unistr('\000a')||
-'        DISPLAY_AS_CODE VALIDATION_name,'||unistr('\000a')||
-'        v_item_id validation_expression1,'||unistr('\000a')||
-'        FORMAT_MASK validation_expression2,'||unistr('\000a')||
-'        ''item buildin validation ''||DISPLAY_AS_CODE VALIDATION_FAILURE_TEXT,'||unistr('\000a')||
-'        999999999999 VALIDATION_SEQUENCE,'||unistr('\000a')||
-'        null CONDITION_TYPE,'||unistr('\000a')||
-'        null CONDITION_TYPE_CODE,'||unistr('\000a')||
-'        null CONDITION_EXPRESSION1,'||unistr('\000a')||
-'        null CONDITION_EXPRESSION'||
-'2'||unistr('\000a')||
-'      from'||unistr('\000a')||
-'        APEX_APPLICATION_PAGE_ITEMS'||unistr('\000a')||
-'      where'||unistr('\000a')||
-'        application_id = :APP_ID'||unistr('\000a')||
-'        and page_id = :APP_PAGE_ID'||unistr('\000a')||
-'        and ITEM_NAME = v_item_id'||unistr('\000a')||
-'        and DISPLAY_AS_CODE in (''NATIVE_NUMBER_FIELD'', ''NATIVE_DATE_PICKER'') '||unistr('\000a')||
-''||unistr('\000a')||
-'      union all'||unistr('\000a')||
-''||unistr('\000a')||
-'      select'||unistr('\000a')||
-'        ''ITEM_REQUIRED'','||unistr('\000a')||
-'        ''ITEM_REQUIRED'','||unistr('\000a')||
-'        v_item_id,'||unistr('\000a')||
-'        FORMAT_MASK,'||unistr('\000a')||
-'        ''item buildin validation ITEM_'||
-'REQUIRED'','||unistr('\000a')||
-'        999999999999,'||unistr('\000a')||
-'        null,'||unistr('\000a')||
-'        null,'||unistr('\000a')||
-'        null,'||unistr('\000a')||
-'        null'||unistr('\000a')||
-'      from'||unistr('\000a')||
-'        APEX_APPLICATION_PAGE_ITEMS'||unistr('\000a')||
-'      where'||unistr('\000a')||
-'        application_id = :APP_ID'||unistr('\000a')||
-'        and page_id = :APP_PAGE_ID'||unistr('\000a')||
-'        and ITEM_NAME = v_item_id'||unistr('\000a')||
-'        and upper(IS_REQUIRED) = ''YES'''||unistr('\000a')||
-'    )'||unistr('\000a')||
-'    order by'||unistr('\000a')||
-'      VALIDATION_SEQUENCE asc'||unistr('\000a')||
-'  ) LOOP'||unistr('\000a')||
-'    v_val_count := v_val_count +1;'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    isRunCondi'||
-'tionMatched('||unistr('\000a')||
-'      p_condition_type_code => validation_row.condition_type_code,'||unistr('\000a')||
-'      p_condition_expression1 => validation_row.condition_expression1,'||unistr('\000a')||
-'      p_condition_expression2 => validation_row.condition_expression2,'||unistr('\000a')||
-'      p_out_run => v_cond_out_run,'||unistr('\000a')||
-'      p_out_msg => v_cond_out_msg'||unistr('\000a')||
-'    );'||unistr('\000a')||
-''||unistr('\000a')||
-'    if v_cond_out_run in (0,2) then'||unistr('\000a')||
-'      v_val_names( v_val_names.count+1 ) := htf.escape_sc( valida'||
-'tion_row.VALIDATION_name );'||unistr('\000a')||
-'      v_val_codes( v_val_codes.count+1 ) := htf.escape_sc( validation_row.VALIDATION_TYPE_CODE );'||unistr('\000a')||
-'      v_val_conditions( v_val_conditions.count+1 ) := htf.escape_sc( v_cond_out_msg );'||unistr('\000a')||
-''||unistr('\000a')||
-'      if v_cond_out_run = 2 then'||unistr('\000a')||
-'        v_val_msges( v_val_msges.count+1) := htf.escape_sc( ''Error occured in validation.'');'||unistr('\000a')||
-'        v_val_statuses( v_val_statuses.count+1 ) := ''"error"'||
-''';    '||unistr('\000a')||
-'        v_validation_msg := ''Error occured in validation.'';'||unistr('\000a')||
-'        raise e_validation_failed; '||unistr('\000a')||
-'      else'||unistr('\000a')||
-'        v_val_statuses( v_val_statuses.count+1 ) := ''null'';'||unistr('\000a')||
-'        v_val_msges( v_val_msges.count+1) := htf.escape_sc( ''null'' );'||unistr('\000a')||
-'        continue;'||unistr('\000a')||
-'      end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'    validate('||unistr('\000a')||
-'      P_VALIDATION_TYPE => validation_row.VALIDATION_TYPE_CODE,'||unistr('\000a')||
-'      p_validation_name => valid'||
-'ation_row.VALIDATION_name,'||unistr('\000a')||
-'      p_validation_expression1 => validation_row.validation_expression1,'||unistr('\000a')||
-'      p_validation_expression2 => validation_row.validation_expression2,'||unistr('\000a')||
-'      p_validation_error_text => validation_row.VALIDATION_FAILURE_TEXT,'||unistr('\000a')||
-'      p_out_error_text => v_val_error_text,'||unistr('\000a')||
-'      p_out_status => v_val_out_status,'||unistr('\000a')||
-'      p_out_msg => v_val_out_msg'||unistr('\000a')||
-'    );'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    v_val_msges( v_val_ms'||
-'ges.count+1) := htf.escape_sc(v_val_out_msg);'||unistr('\000a')||
-'    v_val_names( v_val_names.count+1 ) := htf.escape_sc(validation_row.VALIDATION_name);'||unistr('\000a')||
-'    v_val_codes( v_val_codes.count+1 ) := htf.escape_sc(validation_row.VALIDATION_TYPE_CODE);'||unistr('\000a')||
-'    v_val_conditions( v_val_conditions.count+1 ) := htf.escape_sc( v_cond_out_msg );'||unistr('\000a')||
-''||unistr('\000a')||
-'    if v_val_out_status = 1 then'||unistr('\000a')||
-'      v_val_statuses( v_val_statuses.count+1 ) := ''t'||
-'rue'';'||unistr('\000a')||
-'      continue;'||unistr('\000a')||
-'    elsif v_val_out_status = 0 then'||unistr('\000a')||
-'      v_val_statuses( v_val_statuses.count+1 ) := ''false'';'||unistr('\000a')||
-'      v_validation_msg := v_val_error_text;'||unistr('\000a')||
-'      raise e_validation_failed; '||unistr('\000a')||
-'    else --2'||unistr('\000a')||
-'      v_val_statuses( v_val_statuses.count+1 ) := ''"error"'';'||unistr('\000a')||
-'      v_validation_msg := ''Error occured while performin validation.'';'||unistr('\000a')||
-'      raise e_validation_failed; '||unistr('\000a')||
-'    end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  end LOOP;'||unistr('\000a')||
-''||unistr('\000a')||
-''||
-'  if v_val_count = 0 then'||unistr('\000a')||
-'    raise e_validation_not_found;'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  collectLogs(v_val_names, v_val_codes, v_val_statuses, v_val_msges, v_val_conditions, v_log_exception, v_logs_json);'||unistr('\000a')||
-''||unistr('\000a')||
-'  if v_log_exception is not null then'||unistr('\000a')||
-'    htp.p( v_log_exception );'||unistr('\000a')||
-'  end if;'||unistr('\000a')||
-''||unistr('\000a')||
-'  v_time_end := current_time_ms();'||unistr('\000a')||
-'  v_time_diff := v_time_end - v_time_start;'||unistr('\000a')||
-''||unistr('\000a')||
-'  htp.p( validation_result(v_time_diff, v_item_id, '||
-'''true'', ''Field is valid.'', v_reval_fields, v_logs_json ) );'||unistr('\000a')||
-''||unistr('\000a')||
-'  return v_result;'||unistr('\000a')||
-'EXCEPTION'||unistr('\000a')||
-'  when e_validation_not_found then'||unistr('\000a')||
-'    v_time_end := current_time_ms();'||unistr('\000a')||
-'    v_time_diff := v_time_end - v_time_start;'||unistr('\000a')||
-''||unistr('\000a')||
-'    htp.p( validation_result(v_time_diff, v_item_id, chr(34)||''not_found''||chr(34), ''Validation for this field not found'', v_reval_fields, ''[]'' ) );'||unistr('\000a')||
-''||unistr('\000a')||
-'    return v_result;'||unistr('\000a')||
-'  when e_validation_'||
-'failed then'||unistr('\000a')||
-'    v_validation_msg := htf.escape_sc(v_validation_msg);'||unistr('\000a')||
-'    v_validation_msg := replace(v_validation_msg, chr(35)||''LABEL''||chr(35), v_label);'||unistr('\000a')||
-'    v_validation_msg := replace(v_validation_msg, chr(13)||chr(10), ''\n'');'||unistr('\000a')||
-''||unistr('\000a')||
-'    collectLogs(v_val_names, v_val_codes, v_val_statuses, v_val_msges, v_val_conditions, v_log_exception, v_logs_json);'||unistr('\000a')||
-'    '||unistr('\000a')||
-'    v_time_end := current_time_ms();'||unistr('\000a')||
-'    v_'||
-'time_diff := v_time_end - v_time_start;'||unistr('\000a')||
-''||unistr('\000a')||
-'    htp.p( validation_result(v_time_diff, v_item_id, ''false'', v_validation_msg, v_reval_fields, v_logs_json ) );'||unistr('\000a')||
-''||unistr('\000a')||
-'    return v_result;'||unistr('\000a')||
-'  WHEN OTHERS then'||unistr('\000a')||
-'    htp.p(''ajax_validation: ''||SQLERRM );'||unistr('\000a')||
-'    return v_result;'||unistr('\000a')||
-'end ajax_validation;'
- ,p_render_function => 'render_validation'
- ,p_ajax_function => 'ajax_validation'
- ,p_substitute_attributes => false
- ,p_attribute_01 => '<span class="t-Form-error">#ERROR_MESSAGE#</span>'
- ,p_version_identifier => '1.1.1'
- ,p_about_url => 'http://pretius.com/technologies/apex-client-side-validation-plugin-2/'
-  );
-wwv_flow_api.create_plugin_attribute (
-  p_id => 99645830410494612 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_attribute_scope => 'APPLICATION'
- ,p_attribute_sequence => 1
- ,p_display_sequence => 10
- ,p_prompt => 'Global Error template'
- ,p_attribute_type => 'TEXT'
- ,p_is_required => true
- ,p_default_value => '<span class="t-Form-error">#ERROR_MESSAGE#</span>'
- ,p_is_translatable => false
- ,p_help_text => '<p>'||unistr('\000a')||
-'This attribute contains default error message template which is displayed after validation failure. Validation messages are rendered with this template when the plugin attribute&nbsp;<strong>Override global template</strong>&nbsp;defined on page is set to&nbsp;<strong>NO</strong>.'||unistr('\000a')||
-'</p>'||unistr('\000a')||
-'<p>'||unistr('\000a')||
-'Default: &lt;span class=&quot;apexBuildInErrorText&quot;&gt;&lt;br&gt;#ERROR_MESSAGE#&lt;/span&gt;'||unistr('\000a')||
-'</p>'
-  );
-wwv_flow_api.create_plugin_attribute (
-  p_id => 100730814038974066 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_attribute_scope => 'COMPONENT'
- ,p_attribute_sequence => 1
- ,p_display_sequence => 17
- ,p_prompt => 'Render validation result'
- ,p_attribute_type => 'SELECT LIST'
- ,p_is_required => true
- ,p_default_value => '1'
- ,p_is_translatable => false
- ,p_help_text => '<style>'||unistr('\000a')||
-'  table.pretius_desc {'||unistr('\000a')||
-'    margin: 5px;'||unistr('\000a')||
-'  }'||unistr('\000a')||
-''||unistr('\000a')||
-'  table.pretius_desc td {'||unistr('\000a')||
-'    padding: 10px;'||unistr('\000a')||
-'  }'||unistr('\000a')||
-''||unistr('\000a')||
-'  table.pretius_desc tr:nth-child(even) {'||unistr('\000a')||
-'    background: #F3F3F3;'||unistr('\000a')||
-'  }'||unistr('\000a')||
-''||unistr('\000a')||
-'</style>'||unistr('\000a')||
-''||unistr('\000a')||
-'<p>'||unistr('\000a')||
-'  This attribute defines how validation result should be displayed. Available option are described below:'||unistr('\000a')||
-'</p>'||unistr('\000a')||
-'<table class="pretius_desc" cellpadding="0" cellspacing="0">'||unistr('\000a')||
-'  <tr >'||unistr('\000a')||
-'    <th data-column="0" tabindex="0" unselectable="on">'||unistr('\000a')||
-'      <div >Option</div>'||unistr('\000a')||
-'    </th>'||unistr('\000a')||
-'    <th data-column="1" tabindex="0" unselectable="on">'||unistr('\000a')||
-'      <div >Description</div>'||unistr('\000a')||
-'    </th>'||unistr('\000a')||
-'  </tr>'||unistr('\000a')||
-'  <tr>'||unistr('\000a')||
-'    <td valign="top">Custom callback function</td>'||unistr('\000a')||
-'    <td valign="top">This option allows developer to define custom validation result handling with JavaScript. When this option is selected, attribute <strong>Callback function</strong> is accessible. <strong>Callback function </strong>attribute is described in this document.</td>'||unistr('\000a')||
-'  </tr>'||unistr('\000a')||
-'  <tr>'||unistr('\000a')||
-'    <td valign="top">Error text and highlight field</td>'||unistr('\000a')||
-'    <td valign="top">Validation message is displayed after validation. Text field is highlighted. Highlight color depends on CSS classes <em>pretius_highlight_success</em> and <em>pretius_highlight_error.</em>'||unistr('\000a')||
-'    </td>'||unistr('\000a')||
-'  </tr>'||unistr('\000a')||
-'  <tr>'||unistr('\000a')||
-'    <td valign="top">Error text and icons after field</td>'||unistr('\000a')||
-'    <td valign="top">Validation message and status image indicators are displayed after validation.</td>'||unistr('\000a')||
-'  </tr>'||unistr('\000a')||
-'  <tr>'||unistr('\000a')||
-'    <td valign="top">Error text only</td>'||unistr('\000a')||
-'    <td valign="top">Only the validation message is displayed after validation failure.</td>'||unistr('\000a')||
-'  </tr>'||unistr('\000a')||
-''||unistr('\000a')||
-'</table>'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 100731416116974694 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 100730814038974066 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 10
- ,p_display_value => 'Error text only'
- ,p_return_value => '1'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99528120368920798 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 100730814038974066 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 30
- ,p_display_value => 'Error text and icons after field'
- ,p_return_value => '3'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99528528333923169 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 100730814038974066 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 40
- ,p_display_value => 'Error text and highlight field'
- ,p_return_value => '4'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 100731818887975545 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 100730814038974066 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 99
- ,p_display_value => 'Custom callback function'
- ,p_return_value => '2'
-  );
-wwv_flow_api.create_plugin_attribute (
-  p_id => 100732709668982360 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_attribute_scope => 'COMPONENT'
- ,p_attribute_sequence => 2
- ,p_display_sequence => 18
- ,p_prompt => 'Callback function'
- ,p_attribute_type => 'TEXTAREA'
- ,p_is_required => false
- ,p_is_translatable => false
- ,p_depending_on_attribute_id => 100730814038974066 + wwv_flow_api.g_id_offset
- ,p_depending_on_condition_type => 'EQUALS'
- ,p_depending_on_expression => '2'
- ,p_help_text => '<style>table.pretius_desc{margin: 5px;}table.pretius_desc td{padding: 10px;}table.pretius_desc tr:nth-child(even){background: #F3F3F3;}</style><p> This attribute defines custom validation result handling with Java Script function implementation. Function declaration is defined as below:</p><pre>function( triggeringElement, itemName, validationResult, errorHTML, errorClass )</pre><p> Function arguments:</p><table class="pretius_desc" cellspacing="0" cellpadding="0"> <tr> <th> Argument </th> <th> Type </th> <th> Description </th> </tr><tr> <td>triggeringElement</td><td>jQuery object</td><td>jQuery reference to validated item field</td></tr><tr> <td>itemName</td><td>String</td><td>Validated APEX item name</td></tr><tr> <td>validationResult</td><td>JSON object</td><td>JSON object containing information about validation result. The structure of JSON object is described under this table</td></tr><tr> <td> <p>errorHTML</p></td><td>HTML string</td><td>Validation error message rendered with error template (attribute <strong>Global</strong><strong> Error template</strong> or <strong>Error template</strong>)</td></tr><tr> <td>errorClass</td><td>String</td><td>jQuery selector to validation message</td></tr></table><p><strong>validationResult</strong> description:</p><table class="pretius_desc" cellspacing="0" cellpadding="0"> <tr> <th> Object attribute </th> <th> Type </th> <th> Description </th> </tr><tr> <td>item</td><td>String</td><td>Name of validated APEX item (e.g. P1_CUSTOMER_ID)</td></tr><tr> <td>message</td><td>String</td><td>Rendered Error Message if validation failed (plain text)</td></tr><tr> <td>passed</td><td>Boolean</td><td>Validation result (true/false)</td></tr><tr> <td>revalidate</td><td>String</td><td>List of APEX Items that will be revalidated after current validation ends (eg. P1_CUSTOMER_NAME,P1_CUSTOMER_ADDRESS)</td></tr><tr> <td>time</td><td>JSON object</td><td> <pre>Execution time of PL/SQL validation process (object attributes are "ms", "seconds" and "minutes")</pre> </td></tr><tr> <td>logs</td><td>Array of JSON</td><td> <p>Each object of the array contains information about performed validations</p></td></tr></table><p><strong>validationResult.logs.logs</strong> describes each validation that was performed for APEX item. Description of JSON object in array:</p><table class="pretius_desc" cellspacing="0" cellpadding="0"> <tbody> <tr> <td><strong>Object attribute</span></strong></td><td><strong>Type</span></strong></td><td><strong>Description</span></strong></td><td><strong>Example</strong></td></tr><tr> <td>passed</td><td>Boolean</td><td>validation result</td><td>true</td></tr><tr> <td>validationCode</td><td>String</td><td>APEX validation code</td><td>ITEM_NOT_NULL</td></tr><tr> <td>validationCondition</td><td>String</td><td>Information about validation condition result</td><td>Condition [PLSQL_EXPRESSION] passed.</td></tr><tr> <td>validationMsg</td><td>String</td><td>Validation message defined in APEX validation</td><td>Validation "P4_NAME not null" [ITEM_NOT_NULL] failed</td></tr><tr> <td>validationName</td><td>String</td><td>Validation name that was executed for specific item</td><td>P4_NAME not null</td></tr></tbody></table>'
-  );
-wwv_flow_api.create_plugin_attribute (
-  p_id => 99520336935821560 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_attribute_scope => 'COMPONENT'
- ,p_attribute_sequence => 4
- ,p_display_sequence => 40
- ,p_prompt => 'Show validation processing'
- ,p_attribute_type => 'SELECT LIST'
- ,p_is_required => true
- ,p_default_value => '1'
- ,p_is_translatable => false
- ,p_help_text => '<p>'||unistr('\000a')||
-'  When this attribute is set to&nbsp;<strong>Yes</strong>, the image is displayed after item field during validation process.'||unistr('\000a')||
-'</p>'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99521106591822266 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 99520336935821560 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 10
- ,p_display_value => 'Yes'
- ,p_return_value => '1'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99521508322822695 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 99520336935821560 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 20
- ,p_display_value => 'No'
- ,p_return_value => '0'
-  );
-wwv_flow_api.create_plugin_attribute (
-  p_id => 99637917804055785 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_attribute_scope => 'COMPONENT'
- ,p_attribute_sequence => 5
- ,p_display_sequence => 30
- ,p_prompt => 'Error message place holder'
- ,p_attribute_type => 'SELECT LIST'
- ,p_is_required => true
- ,p_default_value => 'BEFORE_LABEL'
- ,p_is_translatable => false
- ,p_depending_on_attribute_id => 100730814038974066 + wwv_flow_api.g_id_offset
- ,p_depending_on_condition_type => 'IN_LIST'
- ,p_depending_on_expression => '1,3,4'
- ,p_help_text => '<p>This attribute defines where validation message should be located.</p>'||unistr('\000a')||
-'<p>In APEX 4.x validation message&nbsp;is allowed before or after item label.</p>'||unistr('\000a')||
-'<p>In APEX 5.x validation message is allowed before or after item label and before or after item.</p>'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99638721959056985 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 99637917804055785 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 10
- ,p_display_value => 'Before label'
- ,p_return_value => 'BEFORE_LABEL'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99639124730057749 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 99637917804055785 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 20
- ,p_display_value => 'After label'
- ,p_return_value => 'AFTER_LABEL'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99639528193058703 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 99637917804055785 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 30
- ,p_display_value => 'Before item (only APEX 5)'
- ,p_return_value => 'BEFORE_ITEM'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99639930963059512 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 99637917804055785 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 40
- ,p_display_value => 'After item (only APEX 5)'
- ,p_return_value => 'AFTER_ITEM'
-  );
-wwv_flow_api.create_plugin_attribute (
-  p_id => 99641437936089904 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_attribute_scope => 'COMPONENT'
- ,p_attribute_sequence => 6
- ,p_display_sequence => 12
- ,p_prompt => 'Error template'
- ,p_attribute_type => 'TEXT'
- ,p_is_required => true
- ,p_default_value => '<span class="t-Form-error">#ERROR_MESSAGE#</span>'
- ,p_is_translatable => false
- ,p_depending_on_attribute_id => 99649326039502868 + wwv_flow_api.g_id_offset
- ,p_depending_on_condition_type => 'EQUALS'
- ,p_depending_on_expression => 'Y'
- ,p_help_text => '<p>'||unistr('\000a')||
-'  This attribute contains validation message template, which is used to render validation message after performing validation on the fly.'||unistr('\000a')||
-'</p>'||unistr('\000a')||
-''
-  );
-wwv_flow_api.create_plugin_attribute (
-  p_id => 99649326039502868 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_attribute_scope => 'COMPONENT'
- ,p_attribute_sequence => 7
- ,p_display_sequence => 10
- ,p_prompt => 'Override global template'
- ,p_attribute_type => 'SELECT LIST'
- ,p_is_required => true
- ,p_default_value => 'N'
- ,p_is_translatable => false
- ,p_help_text => '<p>When this attribute is set to <strong>Yes</strong>, the <strong>Error template</strong> is used to render validation message. Otherwise validation message is rendered from&nbsp;<strong>Global</strong><strong> Error template</strong>&nbsp;plugin attribute.</p>'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99650130888504279 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 99649326039502868 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 10
- ,p_display_value => 'Yes'
- ,p_return_value => 'Y'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 99650533658505007 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 99649326039502868 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 20
- ,p_display_value => 'No'
- ,p_return_value => 'N'
-  );
-wwv_flow_api.create_plugin_attribute (
-  p_id => 16258221796276336 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_attribute_scope => 'COMPONENT'
- ,p_attribute_sequence => 8
- ,p_display_sequence => 80
- ,p_prompt => 'Re-validate depending fields'
- ,p_attribute_type => 'SELECT LIST'
- ,p_is_required => true
- ,p_default_value => '1'
- ,p_is_translatable => false
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 16259128376278199 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 16258221796276336 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 10
- ,p_display_value => 'Yes'
- ,p_return_value => '1'
-  );
-wwv_flow_api.create_plugin_attr_value (
-  p_id => 16259530108278658 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_attribute_id => 16258221796276336 + wwv_flow_api.g_id_offset
- ,p_display_sequence => 20
- ,p_display_value => 'No'
- ,p_return_value => '0'
-  );
-wwv_flow_api.create_plugin_event (
-  p_id => 98873537036137513 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_name => 'pretius_validation_ended'
- ,p_display_name => 'validation ended'
-  );
-wwv_flow_api.create_plugin_event (
-  p_id => 98862933846830952 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_name => 'pretius_validation_failed'
- ,p_display_name => 'validation not passed'
-  );
-wwv_flow_api.create_plugin_event (
-  p_id => 98871718457065841 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_name => 'pretius_validation_init'
- ,p_display_name => 'validation started'
-  );
-wwv_flow_api.create_plugin_event (
-  p_id => 98925022610541333 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_name => 'pretius_validation_not_found'
- ,p_display_name => 'validation not found'
-  );
-wwv_flow_api.create_plugin_event (
-  p_id => 98863209736833409 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_name => 'pretius_validation_success'
- ,p_display_name => 'validation passed'
-  );
-null;
- 
+wwv_flow_api.import_begin (
+ p_version_yyyy_mm_dd=>'2020.10.01'
+,p_release=>'20.2.0.00.20'
+,p_default_workspace_id=>2031857390615734
+,p_default_application_id=>101
+,p_default_id_offset=>0
+,p_default_owner=>'TECHTESTD'
+);
 end;
 /
+ 
+prompt APPLICATION 101 - ATLAS - TECHTEST
+--
+-- Application Export:
+--   Application:     101
+--   Name:            ATLAS - TECHTEST
+--   Date and Time:   15:34 Monday January 18, 2021
+--   Exported By:     ADMIN
+--   Flashback:       0
+--   Export Type:     Component Export
+--   Manifest
+--     PLUGIN: 104964420168552586
+--   Manifest End
+--   Version:         20.2.0.00.20
+--   Instance ID:     69409115742119
+--
 
- 
 begin
- 
+  -- replace components
+  wwv_flow_api.g_mode := 'REPLACE';
+end;
+/
+prompt --application/shared_components/plugins/dynamic_action/pretius_apex_client_side_validation
+begin
+wwv_flow_api.create_plugin(
+ p_id=>wwv_flow_api.id(104964420168552586)
+,p_plugin_type=>'DYNAMIC ACTION'
+,p_name=>'PRETIUS_APEX_CLIENT_SIDE_VALIDATION'
+,p_display_name=>'Pretius APEX Client Side Validation'
+,p_category=>'EXECUTE'
+,p_supported_ui_types=>'DESKTOP'
+,p_plsql_code=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'/*',
+'  author: Bartosz Ostrowski ostrowski.bartosz@gmail.com, bostrowski@pretius.com',
+'  1.0 release date: 2015-09-16',
+'  1.1 release date: 2016-04-19',
+'  1.2 release date: 2020-01-18 Przemek Czernek (czernek.p@dxc.com): added support for APEX 20.2 ''EXPRESSION'' type of conditions and validations',
+'*/',
+'-- DECLARE',
+'e_validation_failed EXCEPTION;',
+'TYPE t_tab IS TABLE OF VARCHAR2(4000) INDEX BY binary_integer;',
+'',
+'FUNCTION render_validation (',
+'  p_dynamic_action IN apex_plugin.t_dynamic_action,',
+'  p_plugin         IN apex_plugin.t_plugin ',
+') RETURN apex_plugin.t_dynamic_action_render_result',
+'IS',
+'  v_result apex_plugin.t_dynamic_action_render_result;',
+'BEGIN',
+'  apex_css.add_file (  ',
+'    p_name => ''pretius_validation_style'',',
+'    p_directory => p_plugin.file_prefix, ',
+'    p_version => NULL',
+'  );',
+'',
+'  apex_javascript.add_library(',
+'    p_name      => ''pretius_validation'',',
+'    p_directory => p_plugin.file_prefix,',
+'    p_version   => NULL ',
+'  );',
+'',
+'  v_result.ajax_identifier := APEX_PLUGIN.GET_AJAX_IDENTifIER();',
+'  v_result.attribute_01 := p_dynamic_action.attribute_01;',
+'  v_result.attribute_02 := REPLACE(REPLACE(p_dynamic_action.attribute_02, CHR(13), ''''), CHR(10), '''');',
+'  v_result.attribute_04 := p_dynamic_action.attribute_04;',
+'  v_result.attribute_05 := p_dynamic_action.attribute_05;',
+'  v_result.attribute_06 := p_dynamic_action.attribute_06;',
+'  v_result.attribute_07 := p_dynamic_action.attribute_07;',
+'  v_result.attribute_08 := NVL(p_dynamic_action.attribute_08, 0);',
+'  v_result.attribute_10 := p_plugin.attribute_01;',
+'',
+'  v_result.javascript_function := ''function() { pretius_validation(this, ''''''||p_plugin.file_prefix||'''''');}'';    ',
+'',
+'  APEX_PLUGIN_UTIL.DEBUG_DYNAMIC_ACTION (',
+'    p_plugin         => p_plugin,',
+'    p_dynamic_action => p_dynamic_action',
+'  );  ',
+'',
+'  RETURN v_result;',
+'',
+'EXCEPTION',
+'  WHEN OTHERS THEN',
+'    htp.p( SQLERRM );',
+'    RETURN v_result;',
+'END render_validation;',
+'',
+'FUNCTION GET_VALUE (',
+'  P_NAME IN VARCHAR2 )',
+'  RETURN VARCHAR2',
+'IS',
+'  v_value VARCHAR2(32767);',
+'BEGIN',
+'  v_value := V(P_NAME);',
+'  ',
+'  RETURN CASE',
+'    WHEN v_value = ''%null%'' THEN NULL',
+'    ELSE v_value',
+'  END;',
+'END GET_VALUE;',
+'',
+'FUNCTION current_time_ms',
+'  RETURN NUMBER',
+'IS',
+'  out_result NUMBER;',
+'BEGIN',
+'  SELECT ',
+'    EXTRACT(DAY FROM(SYSTIMESTAMP - TO_TIMESTAMP(''1970-01-01'', ''YYYY-MM-DD''))) * 86400000 + TO_NUMBER(TO_CHAR(SYS_EXTRACT_UTC(SYSTIMESTAMP), ''SSSSSFF3''))',
+'  INTO ',
+'    out_result',
+'  FROM ',
+'    dual;',
+'    ',
+'  RETURN out_result;',
+'END current_time_ms;',
+'',
+'FUNCTION perform_binds(',
+'  p_string IN VARCHAR2,',
+'  p_escape IN BOOLEAN DEFAULT FALSE',
+') RETURN VARCHAR2 ',
+'IS',
+'  v_item_names DBMS_SQL.VARCHAR2_TABLE;',
+'  ',
+'  v_item_value VARCHAR2(32767);',
+'  v_string VARCHAR2(32767);',
+'  v_test_number NUMBER;',
+'  v_isnumber BOOLEAN := FALSE;',
+'BEGIN',
+'  v_string := p_string;',
+'  v_item_names := WWV_FLOW_UTILITIES.GET_BINDS( v_string ); ',
+'  ',
+'  FOR i IN 1..v_item_names.count LOOP',
+'  ',
+'    v_item_value := APEX_UTIL.GET_SESSION_STATE (',
+'      p_item => LTRIM(v_item_names(i), '':'')',
+'    );',
+'',
+'    IF p_escape THEN',
+'      --jesli w sesji jest uzyty apostrof, we-escape-uj go',
+'      v_item_value := REPLACE(v_item_value, CHR(39), CHR(39)||CHR(39));',
+'    END IF;',
+'',
+'    IF v_item_value IS NULL THEN',
+'      v_string := REPLACE(v_string, v_item_names(i), ''NULL'');',
+'      CONTINUE;',
+'    END IF;',
+'',
+'    BEGIN',
+'      v_test_number := TO_NUMBER(v_item_value);  ',
+'      v_isnumber := TRUE;',
+'    EXCEPTION',
+'      WHEN others THEN',
+'        v_isnumber := FALSE;',
+'    END;',
+'',
+'    IF v_isnumber THEN',
+'      v_string := REPLACE(v_string, v_item_names(i), v_item_value);',
+'    ELSE',
+'      v_string := REPLACE(v_string, v_item_names(i), CHR(39)||v_item_value||CHR(39));',
+'    END IF;',
+'  ',
+'  END LOOP;',
+'  ',
+'  v_string := apex_plugin_util.replace_substitutions (',
+'    p_value => v_string,',
+'    p_escape => TRUE ',
+'  );',
+'  ',
+'  RETURN v_string;',
+'  ',
+'END perform_binds;',
+'',
+'FUNCTION get_func_boolean_result(',
+'  p_code IN VARCHAR2',
+') RETURN BOOLEAN',
+'IS',
+'  v_func_block VARCHAR2(32000);',
+'  v_result VARCHAR2(1);',
+'  v_code VARCHAR2(32000);',
+'BEGIN',
+'  ',
+'  v_code := perform_binds( p_code, TRUE );',
+'  v_code := REPLACE(v_code, ''declare'', ''DECLARE'');',
+'  v_code := REPLACE(v_code, ''begin'', ''BEGIN'');',
+'',
+'  IF INSTR(v_code, ''DECLARE'') > 0 THEN',
+'    v_code := REPLACE(v_code, ''DECLARE'', ''function test return boolean is'');',
+'  ELSIF INSTR(v_code, ''BEGIN'') > 0 THEN',
+'    v_code := REPLACE(v_code, ''BEGIN'', ''function test return boolean is begin'');',
+'  ELSE',
+'    v_code := ''function test return boolean is begin ''||v_code||'' end;'';',
+'  END IF;',
+'',
+'  v_func_block := ''',
+'    declare',
+'      v_result boolean;',
+'      ''||v_code||''',
+'    begin',
+'      v_result := test();',
+'',
+'      if v_result then',
+'        :out := 1;',
+'      else',
+'        :out := 0;',
+'      end if;',
+'    end; ',
+'  '';',
+'  --htp.p(v_func_block);',
+'  execute IMMEDIATE v_func_block USING OUT v_result;',
+'',
+'  IF v_result = 1 THEN',
+'    RETURN TRUE;',
+'  ELSE',
+'    RETURN FALSE;',
+'  END IF;',
+'',
+'END get_func_boolean_result;',
+'',
+'FUNCTION get_plsql_expression_result(',
+'  p_expression IN VARCHAR2',
+') RETURN BOOLEAN',
+'IS',
+'  v_expression VARCHAR2(32000);',
+'  v_func_block VARCHAR2(32000);',
+'  v_result VARCHAR2(1);',
+'BEGIN',
+'  v_expression := perform_binds( p_expression, TRUE );',
+'  v_func_block := ''',
+'    begin ',
+'      if ''||v_expression||'' then ',
+'        return 1; ',
+'      else ',
+'       return 0; ',
+'      end if;',
+'    end;',
+'  '';',
+' ',
+'  v_result := APEX_PLUGIN_UTIL.GET_PLSQL_FUNCTION_RESULT( v_func_block );',
+'',
+'  IF v_result = ''1'' THEN',
+'    RETURN TRUE;',
+'  ELSE',
+'    RETURN FALSE;',
+'  END IF;',
+'',
+'END get_plsql_expression_result;',
+'',
+'FUNCTION getItemFormatMask(',
+'  p_item_id IN VARCHAR2',
+') RETURN VARCHAR2 IS',
+'  v_format_mask VARCHAR2(200);',
+'BEGIN',
+'  SELECT ',
+'    FORMAT_MASK ',
+'  INTO',
+'    v_format_mask',
+'  FROM ',
+'    APEX_APPLICATION_PAGE_ITEMS ',
+'  WHERE ',
+'    application_id = :APP_ID',
+'    AND page_id = :APP_PAGE_ID ',
+'    AND item_name = p_item_id;',
+'',
+'  RETURN v_format_mask;  ',
+'',
+'EXCEPTION',
+'  WHEN OTHERS THEN',
+'    RETURN NULL;',
+'END getItemFormatMask;',
+'',
+'FUNCTION selectCountFromQuery(',
+'  p_query IN VARCHAR2',
+') RETURN NUMBER',
+'IS',
+'  v_query VARCHAR2(32000);',
+'  v_count NUMBER :=0;',
+'BEGIN',
+'',
+'  v_query := perform_binds( p_query, TRUE );',
+'  v_query := ''select count(1) from (''|| v_query ||'')'';',
+'',
+'  execute IMMEDIATE v_query INTO v_count;',
+'',
+'  RETURN v_count;',
+'',
+'END selectCountFromQuery;',
+'',
+'FUNCTION rtrim_ws(',
+'  p_val IN VARCHAR2',
+') RETURN VARCHAR2',
+'AS',
+'',
+'BEGIN',
+'  RETURN RTRIM(REPLACE(REPLACE(p_val,CHR(13),NULL),CHR(10),NULL));',
+'END rtrim_ws;',
+'',
+'PROCEDURE isRunConditionMatched(',
+'  p_condition_type_code IN VARCHAR2,',
+'  p_condition_expression1 IN VARCHAR2,',
+'  p_condition_expression2 IN VARCHAR2,',
+'  p_out_run OUT NUMBER,',
+'  p_out_msg OUT VARCHAR2',
+'',
+')',
+'IS',
+'  v_cond_type VARCHAR2(100) := p_condition_type_code;',
+'  v_cond_1  VARCHAR2(32767) := WWV_FLOW.DO_SUBSTITUTIONS(p_condition_expression1);',
+'  v_cond_2  VARCHAR2(32767) := WWV_FLOW.DO_SUBSTITUTIONS(p_condition_expression2);',
+'',
+'  e_return_true         EXCEPTION;',
+'  e_return_false        EXCEPTION;',
+'  e_unkown_condition    EXCEPTION;',
+'  e_return_no_condition EXCEPTION;',
+'',
+'  v_test_number NUMBER;',
+'',
+'BEGIN',
+'',
+'  IF p_condition_type_code IS NULL THEN',
+'    RAISE e_return_no_condition;',
+'  END IF;',
+'',
+'  CASE  v_cond_type',
+'  WHEN ''NEVER''             THEN RAISE e_return_false;',
+'  WHEN ''ALWAYS''            THEN RAISE e_return_true;',
+'  WHEN ''SQL_EXPRESION''     THEN IF selectCountFromQuery( ''select 1 from dual where ''||perform_binds( v_cond_1 ) ) = 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''SQL_EXPRESSION''    THEN IF selectCountFromQuery( ''select 1 from dual where ''||perform_binds( v_cond_1 ) ) = 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IS_NULL''      THEN IF REPLACE(V(RTRIM_WS( v_cond_1 )),''%null%'',NULL) IS NOT NULL THEN  RAISE e_return_false; END IF;',
+'  WHEN ''FLOW_ITEM_IS_NULL'' THEN IF REPLACE(V(RTRIM_WS( v_cond_1 )),''%null%'',NULL) IS NOT NULL THEN  RAISE e_return_false; END IF;',
+'  WHEN ''PLSQL_EXPRESSION''  THEN IF NOT get_plsql_expression_result( v_cond_1 ) THEN RAISE e_return_false; END IF; ',
+'  WHEN ''PLSQL_EXPRESION''   THEN IF NOT get_plsql_expression_result( v_cond_1 ) THEN RAISE e_return_false; END IF; ',
+'  WHEN ''FUNCTION_BODY''     THEN IF NOT get_func_boolean_result( v_cond_1 )     THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IS_ZERO''      THEN IF NVL(V(RTRIM_WS( v_cond_1 )),''x'') <> ''0''     THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IS_NOT_NULL''  THEN IF GET_VALUE( v_cond_1 ) IS NULL               THEN RAISE e_return_false; END IF;',
+'  WHEN ''EXISTS''            THEN IF selectCountFromQuery( v_cond_1 ) <= 0       THEN RAISE e_return_false; END IF;',
+'  WHEN ''NOT_EXISTS''        THEN IF selectCountFromQuery( v_cond_1 ) > 0        THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IS_NOT_ZERO''  THEN IF NVL( V( RTRIM_WS(v_cond_1) ),''x'' ) = ''0''    THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_NOT_ZERO''     THEN IF NVL( V( RTRIM_WS(v_cond_1) ),''x'' ) = ''0''    THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IS_NULL_OR_ZERO''          THEN IF V(RTRIM_WS( v_cond_1 )) IS NOT NULL AND V(RTRIM_WS( v_cond_1 )) != ''0'' THEN      RAISE e_return_false; END IF;',
+'  WHEN ''VAL_OF_ITEM_IN_COND_EQ_COND2''  THEN IF GET_VALUE( v_cond_1 ) <> v_cond_2 OR GET_VALUE( v_cond_1 ) IS NULL THEN RAISE e_return_false;     END IF;       ',
+'  WHEN ''ITEM_CONTAINS_NO_SPACES''       THEN IF INSTR(REPLACE(V(WWV_FLOW.DO_SUBSTITUTIONS(RTRIM_WS(v_cond_1),''TEXT'')),''%null%'',NULL),'' '') > 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_NOT_NULL_OR_ZERO''         THEN IF V(RTRIM_WS(v_cond_1)) IS NULL OR V(RTRIM_WS(v_cond_1)) = ''0'' THEN RAISE e_return_false; END IF;    ',
+'  WHEN ''ITEM_IS_NOT_NULL_OR_ZERO''      THEN IF V(RTRIM_WS(v_cond_1)) IS NULL OR V(RTRIM_WS(v_cond_1)) = ''0'' THEN RAISE e_return_false; END IF;    ',
+'  WHEN ''FLOW_ITEM_IS_NOT_NULL_OR_ZERO'' THEN IF V(RTRIM_WS(v_cond_1)) IS NULL OR V(RTRIM_WS(v_cond_1)) = ''0'' THEN RAISE e_return_false; END IF;    ',
+'  WHEN ''ITEM_IS_ALPHANUMERIC''          THEN IF RTRIM(UPPER(REPLACE(V(UPPER(v_cond_1)),''%null%'',NULL)), ''ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_'') IS NOT NULL THEN RAISE e_return_false; END IF;',
+'       /*  l_val VARCHAR2(4000);',
+'           l_val := REPLACE(V(UPPER(v_cond_1)),''%null%'',NULL);',
+'           FOR J IN 1..NVL(LENGTH(REPLACE(V(WWV_FLOW.DO_SUBSTITUTIONS(UPPER(RTRIM_WS(v_cond_1)),''TEXT'')),''%null%'',NULL)),0) LOOP',
+'             IF INSTR(''abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_'',SUBSTR(L_VAL,J,1)) = 0 THEN',
+'               RAISE e_return_false;',
+'             END IF;',
+'           END LOOP; */',
+'  WHEN ''ITEM_IS_NUMERIC'' THEN',
+'       BEGIN',
+'         v_test_number := REPLACE(V(WWV_FLOW.DO_SUBSTITUTIONS(RTRIM_WS(v_cond_1),''TEXT'')),''%null%'',NULL);',
+'       EXCEPTION ',
+'         WHEN others THEN RAISE e_return_false;',
+'       END;',
+'  WHEN ''ITEM_IS_NOT_NUMERIC'' THEN',
+'       BEGIN',
+'          v_test_number := REPLACE(V(WWV_FLOW.DO_SUBSTITUTIONS(RTRIM_WS( v_cond_1 ),''TEXT'')),''%null%'',NULL);',
+'          RAISE e_return_false; ',
+'       EXCEPTION WHEN others THEN',
+'          NULL;',
+'       END;',
+'  WHEN ''VAL_OF_ITEM_IN_COND_NOT_EQ_COND2''                       THEN IF NVL(V(RTRIM_WS( v_cond_1 )),''Mjhakb'') = NVL(WWV_FLOW.DO_SUBSTITUTIONS( v_cond_1 ),''mjHbka'')       THEN RAISE e_return_false; END IF;',
+'  WHEN ''VAL_OF_ITEM_IN_COND_NOT_EQ_COND_TEXT''                   THEN IF NVL(V(RTRIM_WS( v_cond_1 )),''Mjhakb'') = NVL(WWV_FLOW.DO_SUBSTITUTIONS( v_cond_1 ),''mjHbka'')       THEN RAISE e_return_false; END IF;',
+'  WHEN ''VALUE_OF_ITEM_NAMED_IN_COND1_NOT_EQUAL_TEXT_IN_COND2''   THEN IF NVL(V(RTRIM_WS( v_cond_1 )),''Mjhakb'') = NVL(WWV_FLOW.DO_SUBSTITUTIONS( v_cond_1 ),''mjHbka'')       THEN RAISE e_return_false; END IF;',
+'  WHEN ''VALUE_OF_ITEM_IN_CONDITION_IN_COLON_DELIMITED_LIST''     THEN IF INSTR('':''||WWV_FLOW.DO_SUBSTITUTIONS(v_cond_2,''TEXT'')||'':'','':''||V(RTRIM_WS( v_cond_1 ))||'':'') = 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''VALUE_OF_ITEM_IN_CONDITION_NOT_IN_COLON_DELIMITED_LIST'' THEN IF INSTR('':''||WWV_FLOW.DO_SUBSTITUTIONS(v_cond_2,''TEXT'')||'':'','':''||V(RTRIM_WS( v_cond_1 ))||'':'') > 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''EXPRESSION'' THEN',
+'       CASE v_cond_2',
+'           WHEN ''SQL''   THEN IF selectCountFromQuery( ''select 1 from dual where ''||perform_binds( v_cond_1 ) ) = 0 THEN RAISE e_return_false; END IF;',
+'           WHEN ''PLSQL'' THEN IF NOT get_plsql_expression_result( v_cond_1 ) THEN RAISE e_return_false; END IF;',
+'           ELSE RAISE e_unkown_condition;',
+'       END CASE;',
+'  ELSE    RAISE e_unkown_condition;',
+'  END CASE;',
+'',
+'  RAISE e_return_true;',
+'',
+'EXCEPTION',
+'  WHEN e_return_no_condition THEN',
+'    p_out_run := 1;',
+'    p_out_msg := ''No condition for validation'';',
+'  WHEN e_return_true THEN',
+'    p_out_run := 1;',
+'    p_out_msg := ''Condition [''||v_cond_type||''] passed.'';',
+'  WHEN e_return_false THEN',
+'    p_out_run := 0;',
+'    p_out_msg := ''Condition [''||v_cond_type||''] not passed. Validation is not executed.'';',
+'  WHEN e_unkown_condition THEN',
+'    p_out_run := 2;',
+'    p_out_msg := ''Condition type [''|| v_cond_type || '']  not supported. Sorry'';',
+'    APEX_DEBUG.ERROR ( ''Condition type [%s] ("%s", "%s") not supported.'', v_cond_type, v_cond_1, v_cond_2);  ',
+'  WHEN OTHERS THEN',
+'    p_out_run := 2;',
+'    p_out_msg := ''Unexpected error: ''||SQLERRM;',
+'    APEX_DEBUG.ERROR ( ''Unexpected error: ''||SQLERRM);  ',
+'END isRunConditionMatched;',
+'',
+'PROCEDURE VALIDATE(',
+'  P_VALIDATION_TYPE IN VARCHAR2,',
+'  p_validation_name IN VARCHAR2,',
+'  p_validation_expression1 IN VARCHAR2,',
+'  p_validation_expression2 IN VARCHAR2,',
+'  p_validation_error_text IN VARCHAR2,',
+'  p_out_error_text OUT VARCHAR2,',
+'  p_out_status OUT NUMBER,',
+'  p_out_msg OUT VARCHAR2',
+')',
+'IS',
+'  L_EXPRESSION1 VARCHAR2(32767) := WWV_FLOW.DO_SUBSTITUTIONS(p_validation_expression1);',
+'  L_EXPRESSION2 VARCHAR2(32767) := WWV_FLOW.DO_SUBSTITUTIONS(p_validation_expression2);',
+'  L_VALUE VARCHAR2(32767);',
+'  l_boolean BOOLEAN;',
+'  ',
+'  e_return_true EXCEPTION;',
+'  e_return_false EXCEPTION;',
+'  e_unknown_validation EXCEPTION;',
+'',
+'  v_test_number NUMBER;',
+'  v_test_date DATE;',
+'  v_test_result VARCHAR2(3200);',
+'BEGIN',
+'  p_out_error_text := p_validation_error_text;',
+'  L_VALUE := GET_VALUE(L_EXPRESSION1);',
+'  ',
+'  CASE P_VALIDATION_TYPE',
+'  WHEN ''EXISTS''                THEN IF selectCountFromQuery( L_EXPRESSION1 ) <= 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''NOT_EXISTS''            THEN IF selectCountFromQuery( L_EXPRESSION1 ) >  0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_NOT_ZERO''         THEN IF NOT NVL(L_VALUE,''x'') != ''0''                THEN RAISE e_return_false; END IF;    ',
+'  WHEN ''ITEM_REQUIRED''         THEN    ',
+'       p_out_error_text := REPLACE(APEX_LANG.MESSAGE(''APEX.PAGE_ITEM_IS_REQUIRED'', L_EXPRESSION2), ''APEX.PAGE_ITEM_IS_REQUIRED'', ''#LABEL# must have some value.'');',
+'       IF L_VALUE IS NULL THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_NOT_NULL''         THEN IF L_VALUE IS NULL                            THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_NOT_NULL_OR_ZERO'' THEN IF NVL(L_VALUE, ''0'') = ''0''                    THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IS_ALPHANUMERIC''  THEN IF RTRIM(UPPER(L_VALUE), ''ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_'') IS NOT NULL THEN RAISE e_return_false; END IF;',
+'  WHEN ''NATIVE_NUMBER_FIELD''   THEN',
+'       p_out_error_text := REPLACE(APEX_LANG.MESSAGE(''APEX.NUMBER_FIELD.VALUE_INVALID''), ''APEX.NUMBER_FIELD.VALUE_INVALID'', ''#LABEL# must be Numeric.'');',
+'       BEGIN',
+'         v_test_number := TO_NUMBER( REPLACE(REPLACE(L_VALUE, '','', NULL), ''.'', NULL) );',
+'       EXCEPTION',
+'         WHEN OTHERS THEN RAISE e_return_false;',
+'       END;',
+'  WHEN ''ITEM_IS_NUMERIC''  THEN',
+'       BEGIN',
+'         v_test_number := TO_NUMBER( REPLACE(REPLACE(L_VALUE, '','', NULL), ''.'', NULL) );',
+'       EXCEPTION',
+'         WHEN OTHERS THEN RAISE e_return_false;',
+'       END;',
+'  WHEN ''ITEM_CONTAINS_NO_SPACES'' THEN IF INSTR(L_VALUE,'' '') > 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IS_DATE'' THEN',
+'       IF L_VALUE IS NOT NULL THEN',
+'         BEGIN',
+'           v_test_date := TO_DATE(L_VALUE, NVL(getItemFormatMask(L_EXPRESSION1),''DD-MON-RR''));',
+'         EXCEPTION',
+'           WHEN others THEN RAISE e_return_false;',
+'         END;',
+'       END IF;',
+'  WHEN ''NATIVE_DATE_PICKER'' THEN',
+'       p_out_error_text := REPLACE(APEX_LANG.MESSAGE(''APEX.DATEPICKER_VALUE_INVALID'', L_EXPRESSION2), ''APEX.DATEPICKER_VALUE_INVALID'', ''#LABEL# does not match format ''||L_EXPRESSION2||''.'');',
+'       IF L_VALUE IS NOT NULL THEN',
+'         BEGIN',
+'           v_test_date := TO_DATE(L_VALUE, NVL(getItemFormatMask(L_EXPRESSION1),''DD-MON-RR''));',
+'         EXCEPTION',
+'           WHEN others THEN RAISE e_return_false;',
+'         END;',
+'       END IF;',
+'  WHEN ''SQL_EXPRESION''    THEN IF selectCountFromQuery( ''select 1 from dual where ''||perform_binds( L_EXPRESSION1, TRUE ) ) = 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''SQL_EXPRESSION''   THEN IF selectCountFromQuery( ''select 1 from dual where ''||perform_binds( L_EXPRESSION1, TRUE ) ) = 0 THEN RAISE e_return_false; END IF;',
+'  WHEN ''PLSQL_EXPRESION''  THEN IF NOT get_plsql_expression_result( L_EXPRESSION1 ) THEN RAISE e_return_false; END IF;',
+'  WHEN ''PLSQL_EXPRESSION'' THEN IF NOT get_plsql_expression_result( L_EXPRESSION1 ) THEN RAISE e_return_false; END IF;',
+'  WHEN ''PLSQL_ERROR''      THEN  RAISE e_return_false;',
+'  WHEN ''FUNC_BODY_RETURNING_ERR_TEXT'' THEN',
+'       v_test_result := APEX_PLUGIN_UTIL.GET_PLSQL_FUNCTION_RESULT( L_EXPRESSION1 );',
+'       IF v_test_result IS NOT NULL THEN',
+'         p_out_error_text := v_test_result; ',
+'         RAISE e_return_false;',
+'       END IF;',
+'  WHEN ''FUNC_BODY_RETURNING_BOOLEAN''       THEN IF NOT get_func_boolean_result( L_EXPRESSION1 ) THEN RAISE e_return_false; END IF;',
+'  WHEN ''REGULAR_EXPRESSION''                THEN IF NOT REGEXP_LIKE (l_value, l_expression2)     THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IN_VALIDATION_IN_STRING2''     THEN IF INSTR(L_EXPRESSION2, L_VALUE) = 0            THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IN_VALIDATION_NOT_IN_STRING2'' THEN IF INSTR(L_EXPRESSION2, L_VALUE) > 0            THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IN_VALIDATION_EQ_STRING2''     THEN IF NOT (L_EXPRESSION2 = l_value)                THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IN_VALIDATION_NOT_EQ_STRING2'' THEN IF      L_EXPRESSION2 = L_VALUE                 THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IN_VALIDATION_CONTAINS_ONLY_CHAR_IN_STRING2'' THEN IF RTRIM(L_VALUE, l_expression2) IS NOT NULL THEN RAISE e_return_false; END IF;',
+'  WHEN ''ITEM_IN_VALIDATION_CONTAINS_AT_LEAST_ONE_CHAR_IN_STRING2'' THEN',
+'       IF l_value IS NULL THEN',
+'          RAISE e_return_false;',
+'       END IF;',
+'       l_boolean := FALSE;',
+'       FOR i IN 1..LENGTH(l_value) LOOP',
+'         IF INSTR(l_expression2, SUBSTR(l_value, i, 1)) > 0 THEN',
+'           l_boolean := TRUE;',
+'           exit;',
+'         END IF;',
+'       END LOOP;    ',
+'       IF NOT l_boolean THEN',
+'         RAISE e_return_false;',
+'       END IF;',
+'  WHEN ''ITEM_IN_VALIDATION_CONTAINS_NO_CHAR_IN_STRING2'' THEN ',
+'       IF l_value IS NULL THEN',
+'         RAISE e_return_false;',
+'       END IF;',
+'       l_boolean := TRUE;',
+'       FOR i IN 1..LENGTH(l_value) LOOP',
+'         IF INSTR(l_expression2, SUBSTR(l_value, i, 1)) > 0 THEN',
+'           l_boolean := FALSE;',
+'           exit;',
+'         END IF;',
+'       END LOOP;',
+'       IF NOT l_boolean THEN',
+'         RAISE e_return_false;',
+'       END IF;',
+'  WHEN ''EXPRESSION'' THEN',
+'        CASE l_expression2',
+'          WHEN ''PLSQL'' THEN IF NOT get_plsql_expression_result( L_EXPRESSION1 ) THEN RAISE e_return_false; END IF;',
+'          WHEN ''SQL''   THEN IF selectCountFromQuery( ''select 1 from dual where ''||perform_binds( L_EXPRESSION1, TRUE ) ) = 0 THEN RAISE e_return_false; END IF;',
+'          ELSE RAISE e_unknown_validation;',
+'        END CASE;',
+'  ELSE RAISE e_unknown_validation;',
+'  END CASE;',
+'',
+'  RAISE e_return_true;',
+'',
+'EXCEPTION',
+'  WHEN e_return_true THEN',
+'    p_out_status := 1;',
+'    p_out_msg := ''Validation "''|| P_VALIDATION_name ||''" [''|| P_VALIDATION_TYPE ||''] passed'';',
+'  WHEN e_return_false THEN',
+'    p_out_status := 0;',
+'    p_out_msg := ''Validation "''|| P_VALIDATION_name ||''" [''|| P_VALIDATION_TYPE ||''] failed'';',
+'  WHEN e_unknown_validation THEN',
+'    p_out_status := 2;',
+'    p_out_msg := ''Validation type [''|| P_VALIDATION_TYPE || ''] not supported. Sorry'';',
+'    APEX_DEBUG.ERROR ( ''Validation type [%s] ("%s", "%s") not supported.'', P_VALIDATION_TYPE, l_expression1, l_expression2);  ',
+'  WHEN OTHERS THEN',
+'    p_out_status := 2;',
+'    p_out_error_text := ''Error occured while performing validation: ''||REPLACE(REPLACE(DBMS_UTILITY.FORMAT_ERROR_BACKTRACE, CHR(13), '' ''), CHR(10), '' '');',
+'    p_out_msg := ''Error occured while performing validation: ''||REPLACE(REPLACE(DBMS_UTILITY.FORMAT_ERROR_BACKTRACE, CHR(13), '' ''), CHR(10), '' '');',
+'END VALIDATE;',
+'',
+'PROCEDURE collectLogs(',
+'  pi_names IN t_tab,',
+'  pi_codes IN t_tab,',
+'  pi_statuses IN t_tab,',
+'  pi_msges IN t_tab,',
+'  pi_conditions IN t_tab,',
+'  po_exception OUT VARCHAR2,',
+'  po_json OUT VARCHAR2',
+') IS',
+'  v_logs_json VARCHAR2(32000);',
+'BEGIN',
+'  IF pi_names.count > 0 THEN',
+'    FOR i IN pi_names.first..pi_names.last LOOP',
+'      v_logs_json := v_logs_json||''{',
+'        "validationCode": "''||pi_codes(i)||''",',
+'        "validationName": "''||pi_names(i)||''",',
+'        "validationMsg": "''||pi_msges(i)||''",',
+'        "validationCondition": "''||pi_conditions(i)||''",',
+'        "passed": ''||pi_statuses(i)||''',
+'      }'';',
+'    ',
+'      IF i <> pi_names.last THEN',
+'        v_logs_json := v_logs_json||'','';',
+'      END IF;',
+'    END LOOP;',
+'',
+'  END IF;',
+'',
+'  po_json := v_logs_json;',
+'',
+'EXCEPTION',
+'  WHEN OTHERS THEN',
+'    po_exception := SQLERRM;',
+'END collectLogs;',
+'',
+'FUNCTION getFieldsToReValidate(',
+'  p_item_name IN VARCHAR2',
+') RETURN VARCHAR2 IS',
+'  v_items_to_validate VARCHAR2(3200);',
+'BEGIN',
+'',
+'  SELECT',
+'    LISTAGG(''#''||ASSOCIATED_ITEM, '','') WITHIN GROUP( ORDER BY 1 )',
+'  INTO ',
+'    v_items_to_validate',
+'  FROM (',
+'    SELECT ',
+'      DISTINCT',
+'        ASSOCIATED_ITEM',
+'    FROM',
+'      APEX_APPLICATION_PAGE_VAL aapv',
+'    WHERE ',
+'      application_id = :APP_ID',
+'      AND page_id = :APP_PAGE_ID',
+'      AND INSTR('':''||CONDITION_EXPRESSION1||CONDITION_EXPRESSION2||VALIDATION_EXPRESSION1||VALIDATION_EXPRESSION2||'':'', p_item_name) > 0',
+'      AND ASSOCIATED_ITEM <> p_item_name  ',
+'  );',
+'',
+'  RETURN v_items_to_validate;',
+'',
+'END getFieldsToReValidate;',
+'',
+'FUNCTION validation_result( ',
+'  p_time IN NUMBER,',
+'  p_item IN VARCHAR2,',
+'  p_passed IN VARCHAR2,',
+'  p_message IN VARCHAR2,',
+'  p_revalidate IN VARCHAR2,',
+'  p_logs IN VARCHAR2',
+') RETURN VARCHAR2 IS',
+'  v_time_mask VARCHAR2(24) := ''999G999G999G999G990D0000'';',
+'BEGIN',
+'  RETURN ''',
+'    {',
+'      "validation_result": {',
+'        "time": {',
+'          "ms": "''     ||REPLACE(TO_CHAR(p_time, v_time_mask),'' '', '''')||''",',
+'          "seconds": "''||REPLACE(TO_CHAR((p_time/1000), v_time_mask),'' '', '''')||''",',
+'          "minutes": "''||REPLACE(TO_CHAR((p_time/1000/60), v_time_mask),'' '', '''')||''"',
+'        },',
+'        "item": "''||p_item||''",',
+'        "passed": ''||p_passed||'',',
+'        "message": "''||p_message||''",',
+'        "revalidate": "''||p_revalidate||''",',
+'        "logs": [''||p_logs||'']',
+'      }',
+'    }',
+'  '';',
+'END;',
+'',
+'FUNCTION ajax_validation (',
+'  p_dynamic_action IN apex_plugin.t_dynamic_action,',
+'  p_plugin         IN apex_plugin.t_plugin ',
+') RETURN apex_plugin.t_dynamic_action_ajax_result',
+'IS',
+'  v_val_names t_tab;',
+'  v_val_statuses t_tab;',
+'  v_val_codes t_tab;',
+'  v_val_msges t_tab;',
+'  v_val_conditions t_tab;',
+'  v_revalidate NUMBER := NVL(p_dynamic_action.attribute_08, 0);',
+'  v_reval_fields VARCHAR2(4000);',
+'  v_result apex_plugin.t_dynamic_action_ajax_result;',
+'  v_item_id VARCHAR2(100) := apex_application.g_x01;',
+'  v_validation_msg VARCHAR2(32000);',
+'',
+'  v_cond_out_msg VARCHAR2(3200);',
+'  v_cond_out_run NUMBER;',
+'',
+'  v_val_out_msg VARCHAR2(3200);',
+'  v_val_out_status NUMBER;',
+'',
+'  v_label VARCHAR2(100);',
+'  ',
+'  v_logs_json VARCHAR2(32000);',
+'',
+'  v_log_exception VARCHAR2(32000);',
+'  v_val_count NUMBER :=0;',
+'  e_validation_not_found EXCEPTION;',
+'',
+'  v_val_error_text VARCHAR2(32000);',
+'',
+'  v_time_start NUMBER;',
+'  v_time_end NUMBER;',
+'  v_time_diff NUMBER;',
+'BEGIN',
+'  v_time_start := current_time_ms();',
+'',
+'  IF v_revalidate = 1 THEN',
+'    v_reval_fields := getFieldsToReValidate(v_item_id);',
+'  END IF;',
+'',
+'  BEGIN',
+'     SELECT LABEL',
+'       INTO v_label',
+'       FROM APEX_APPLICATION_PAGE_ITEMS',
+'      WHERE application_id = :APP_ID',
+'        AND page_id = :APP_PAGE_ID',
+'        AND ITEM_NAME = v_item_id',
+'     ;',
+'  EXCEPTION',
+'    WHEN no_data_found THEN',
+'      v_label := ''label not found'';',
+'    WHEN OTHERS THEN',
+'      v_label := SQLERRM;',
+'  END;',
+'',
+'  FOR validation_row IN (',
+'     SELECT *',
+'       FROM ( SELECT VALIDATION_TYPE_CODE',
+'                   , VALIDATION_name',
+'                   , validation_expression1',
+'                   , validation_expression2',
+'                   , VALIDATION_FAILURE_TEXT',
+'                   , VALIDATION_SEQUENCE',
+'                   , CONDITION_TYPE',
+'                   , CONDITION_TYPE_CODE',
+'                   , CONDITION_EXPRESSION1',
+'                   , CONDITION_EXPRESSION2',
+'                FROM APEX_APPLICATION_PAGE_VAL aapv',
+'               WHERE aapv.application_id  = :APP_ID',
+'                 AND aapv.page_id         = :APP_PAGE_ID',
+'                 AND aapv.ASSOCIATED_ITEM = v_item_id',
+'                 AND (aapv.CONDITION_TYPE_CODE <> ''NEVER'' OR aapv.CONDITION_TYPE_CODE IS NULL)',
+'              UNION ALL',
+'              SELECT DISPLAY_AS_CODE                                 VALIDATION_TYPE_CODE',
+'                   , DISPLAY_AS_CODE                                 VALIDATION_name',
+'                   , v_item_id                                       validation_expression1',
+'                   , FORMAT_MASK                                     validation_expression2',
+'                   , ''item built-in validation '' || DISPLAY_AS_CODE  VALIDATION_FAILURE_TEXT',
+'                   , 999999999999                                    VALIDATION_SEQUENCE',
+'                   , NULL                                            CONDITION_TYPE',
+'                   , NULL                                            CONDITION_TYPE_CODE',
+'                   , NULL                                            CONDITION_EXPRESSION1',
+'                   , NULL                                            CONDITION_EXPRESSION2',
+'                FROM APEX_APPLICATION_PAGE_ITEMS',
+'               WHERE application_id = :APP_ID',
+'                 AND page_id = :APP_PAGE_ID',
+'                 AND ITEM_NAME = v_item_id',
+'                 AND DISPLAY_AS_CODE IN (''NATIVE_NUMBER_FIELD'', ''NATIVE_DATE_PICKER'')',
+'              UNION ALL',
+'              SELECT ''ITEM_REQUIRED''',
+'                   , ''ITEM_REQUIRED''',
+'                   , v_item_id',
+'                   , FORMAT_MASK',
+'                   , ''item built-in validation: ITEM_REQUIRED''',
+'                   , 999999999999',
+'                   , NULL',
+'                   , NULL',
+'                   , NULL',
+'                   , NULL',
+'                FROM APEX_APPLICATION_PAGE_ITEMS',
+'               WHERE application_id = :APP_ID',
+'                 AND page_id        = :APP_PAGE_ID',
+'                 AND ITEM_NAME      = v_item_id',
+'                 AND UPPER ( IS_REQUIRED ) = ''YES''',
+'            )',
+'      ORDER BY VALIDATION_SEQUENCE ASC) ',
+'  LOOP',
+'    v_val_count := v_val_count +1;',
+'    ',
+'    isRunConditionMatched(',
+'      p_condition_type_code => validation_row.condition_type_code,',
+'      p_condition_expression1 => validation_row.condition_expression1,',
+'      p_condition_expression2 => validation_row.condition_expression2,',
+'      p_out_run => v_cond_out_run,',
+'      p_out_msg => v_cond_out_msg',
+'    );',
+'',
+'    IF v_cond_out_run IN (0,2) THEN',
+'      v_val_names( v_val_names.count+1 ) := htf.escape_sc( validation_row.VALIDATION_name );',
+'      v_val_codes( v_val_codes.count+1 ) := htf.escape_sc( validation_row.VALIDATION_TYPE_CODE );',
+'      v_val_conditions( v_val_conditions.count+1 ) := htf.escape_sc( v_cond_out_msg );',
+'',
+'      IF v_cond_out_run = 2 THEN',
+'        v_val_msges( v_val_msges.count+1) := htf.escape_sc( ''Error occured in validation.'');',
+'        v_val_statuses( v_val_statuses.count+1 ) := ''"error"'';    ',
+'        v_validation_msg := ''Error occured in validation.'';',
+'        RAISE e_validation_failed; ',
+'      ELSE',
+'        v_val_statuses( v_val_statuses.count+1 ) := ''null'';',
+'        v_val_msges( v_val_msges.count+1) := htf.escape_sc( ''null'' );',
+'        CONTINUE;',
+'      END IF;',
+'',
+'    END IF;',
+'',
+'    VALIDATE(',
+'      P_VALIDATION_TYPE => validation_row.VALIDATION_TYPE_CODE,',
+'      p_validation_name => validation_row.VALIDATION_name,',
+'      p_validation_expression1 => validation_row.validation_expression1,',
+'      p_validation_expression2 => validation_row.validation_expression2,',
+'      p_validation_error_text => validation_row.VALIDATION_FAILURE_TEXT,',
+'      p_out_error_text => v_val_error_text,',
+'      p_out_status => v_val_out_status,',
+'      p_out_msg => v_val_out_msg',
+'    );',
+'    ',
+'    v_val_msges( v_val_msges.count+1)  := htf.escape_sc(v_val_out_msg);',
+'    v_val_names( v_val_names.count+1 ) := htf.escape_sc(validation_row.VALIDATION_name);',
+'    v_val_codes( v_val_codes.count+1 ) := htf.escape_sc(validation_row.VALIDATION_TYPE_CODE);',
+'    v_val_conditions( v_val_conditions.count+1 ) := htf.escape_sc( v_cond_out_msg );',
+'',
+'    IF v_val_out_status = 1 THEN',
+'      v_val_statuses( v_val_statuses.count+1 ) := ''true'';',
+'      CONTINUE;',
+'    ELSIF v_val_out_status = 0 THEN',
+'      v_val_statuses( v_val_statuses.count+1 ) := ''false'';',
+'      v_validation_msg := v_val_error_text;',
+'      RAISE e_validation_failed; ',
+'    ELSE --2',
+'      v_val_statuses( v_val_statuses.count+1 ) := ''"error"'';',
+'      v_validation_msg := ''Error occured while performing validation: '' || v_val_out_msg;',
+'      RAISE e_validation_failed; ',
+'    END IF;',
+'',
+'  END LOOP;',
+'',
+'  IF v_val_count = 0 THEN',
+'    RAISE e_validation_not_found;',
+'  END IF;',
+'',
+'  collectLogs(v_val_names, v_val_codes, v_val_statuses, v_val_msges, v_val_conditions, v_log_exception, v_logs_json);',
+'',
+'  IF v_log_exception IS NOT NULL THEN',
+'    htp.p( v_log_exception );',
+'  END IF;',
+'',
+'  v_time_end := current_time_ms();',
+'  v_time_diff := v_time_end - v_time_start;',
+'',
+'  htp.p( validation_result(v_time_diff, v_item_id, ''true'', ''Field is valid.'', v_reval_fields, v_logs_json ) );',
+'',
+'  RETURN v_result;',
+'EXCEPTION',
+'  WHEN e_validation_not_found THEN',
+'    v_time_end := current_time_ms();',
+'    v_time_diff := v_time_end - v_time_start;',
+'',
+'    htp.p( validation_result(v_time_diff, v_item_id, CHR(34)||''not_found''||CHR(34), ''Validation for this field not found'', v_reval_fields, ''[]'' ) );',
+'',
+'    RETURN v_result;',
+'  WHEN e_validation_failed THEN',
+'    v_validation_msg := htf.escape_sc(v_validation_msg);',
+'    v_validation_msg := REPLACE(v_validation_msg, CHR(35)||''LABEL''||CHR(35), v_label);',
+'    v_validation_msg := REPLACE(v_validation_msg, CHR(13)||CHR(10), ''\n'');',
+'',
+'    collectLogs(v_val_names, v_val_codes, v_val_statuses, v_val_msges, v_val_conditions, v_log_exception, v_logs_json);',
+'    ',
+'    v_time_end := current_time_ms();',
+'    v_time_diff := v_time_end - v_time_start;',
+'',
+'    htp.p( validation_result(v_time_diff, v_item_id, ''false'', v_validation_msg, v_reval_fields, v_logs_json ) );',
+'',
+'    RETURN v_result;',
+'  WHEN OTHERS THEN',
+'    htp.p(''ajax_validation: ''||SQLERRM );',
+'    RETURN v_result;',
+'END ajax_validation;',
+''))
+,p_api_version=>1
+,p_render_function=>'render_validation'
+,p_ajax_function=>'ajax_validation'
+,p_substitute_attributes=>false
+,p_subscribe_plugin_settings=>true
+,p_version_identifier=>'1.2'
+,p_about_url=>'http://pretius.com/technologies/apex-client-side-validation-plugin-2/'
+,p_files_version=>12
+);
+end;
+/
+begin
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(103918312993027629)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_attribute_scope=>'APPLICATION'
+,p_attribute_sequence=>1
+,p_display_sequence=>10
+,p_prompt=>'Global Error template'
+,p_attribute_type=>'TEXT'
+,p_is_required=>true
+,p_default_value=>'<span class="t-Form-error">#ERROR_MESSAGE#</span>'
+,p_is_translatable=>false
+,p_help_text=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'<p>',
+'This attribute contains default error message template which is displayed after validation failure. Validation messages are rendered with this template when the plugin attribute&nbsp;<strong>Override global template</strong>&nbsp;defined on page is s'
+||'et to&nbsp;<strong>NO</strong>.',
+'</p>',
+'<p>',
+'Default: &lt;span class=&quot;apexBuildInErrorText&quot;&gt;&lt;br&gt;#ERROR_MESSAGE#&lt;/span&gt;',
+'</p>'))
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(105003296621507083)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>1
+,p_display_sequence=>17
+,p_prompt=>'Render validation result'
+,p_attribute_type=>'SELECT LIST'
+,p_is_required=>true
+,p_default_value=>'1'
+,p_is_translatable=>false
+,p_lov_type=>'STATIC'
+,p_help_text=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'<style>',
+'  table.pretius_desc {',
+'    margin: 5px;',
+'  }',
+'',
+'  table.pretius_desc td {',
+'    padding: 10px;',
+'  }',
+'',
+'  table.pretius_desc tr:nth-child(even) {',
+'    background: #F3F3F3;',
+'  }',
+'',
+'</style>',
+'',
+'<p>',
+'  This attribute defines how validation result should be displayed. Available option are described below:',
+'</p>',
+'<table class="pretius_desc" cellpadding="0" cellspacing="0">',
+'  <tr >',
+'    <th data-column="0" tabindex="0" unselectable="on">',
+'      <div >Option</div>',
+'    </th>',
+'    <th data-column="1" tabindex="0" unselectable="on">',
+'      <div >Description</div>',
+'    </th>',
+'  </tr>',
+'  <tr>',
+'    <td valign="top">Custom callback function</td>',
+'    <td valign="top">This option allows developer to define custom validation result handling with JavaScript. When this option is selected, attribute <strong>Callback function</strong> is accessible. <strong>Callback function </strong>attribute is d'
+||'escribed in this document.</td>',
+'  </tr>',
+'  <tr>',
+'    <td valign="top">Error text and highlight field</td>',
+'    <td valign="top">Validation message is displayed after validation. Text field is highlighted. Highlight color depends on CSS classes <em>pretius_highlight_success</em> and <em>pretius_highlight_error.</em>',
+'    </td>',
+'  </tr>',
+'  <tr>',
+'    <td valign="top">Error text and icons after field</td>',
+'    <td valign="top">Validation message and status image indicators are displayed after validation.</td>',
+'  </tr>',
+'  <tr>',
+'    <td valign="top">Error text only</td>',
+'    <td valign="top">Only the validation message is displayed after validation failure.</td>',
+'  </tr>',
+'',
+'</table>'))
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(105003898699507711)
+,p_plugin_attribute_id=>wwv_flow_api.id(105003296621507083)
+,p_display_sequence=>10
+,p_display_value=>'Error text only'
+,p_return_value=>'1'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103800602951453815)
+,p_plugin_attribute_id=>wwv_flow_api.id(105003296621507083)
+,p_display_sequence=>30
+,p_display_value=>'Error text and icons after field'
+,p_return_value=>'3'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103801010916456186)
+,p_plugin_attribute_id=>wwv_flow_api.id(105003296621507083)
+,p_display_sequence=>40
+,p_display_value=>'Error text and highlight field'
+,p_return_value=>'4'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(105004301470508562)
+,p_plugin_attribute_id=>wwv_flow_api.id(105003296621507083)
+,p_display_sequence=>99
+,p_display_value=>'Custom callback function'
+,p_return_value=>'2'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(105005192251515377)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>2
+,p_display_sequence=>18
+,p_prompt=>'Callback function'
+,p_attribute_type=>'TEXTAREA'
+,p_is_required=>false
+,p_is_translatable=>false
+,p_depending_on_attribute_id=>wwv_flow_api.id(105003296621507083)
+,p_depending_on_has_to_exist=>true
+,p_depending_on_condition_type=>'EQUALS'
+,p_depending_on_expression=>'2'
+,p_help_text=>'<style>table.pretius_desc{margin: 5px;}table.pretius_desc td{padding: 10px;}table.pretius_desc tr:nth-child(even){background: #F3F3F3;}</style><p> This attribute defines custom validation result handling with Java Script function implementation. Func'
+||'tion declaration is defined as below:</p><pre>function( triggeringElement, itemName, validationResult, errorHTML, errorClass )</pre><p> Function arguments:</p><table class="pretius_desc" cellspacing="0" cellpadding="0"> <tr> <th> Argument </th> <th> '
+||'Type </th> <th> Description </th> </tr><tr> <td>triggeringElement</td><td>jQuery object</td><td>jQuery reference to validated item field</td></tr><tr> <td>itemName</td><td>String</td><td>Validated APEX item name</td></tr><tr> <td>validationResult</td'
+||'><td>JSON object</td><td>JSON object containing information about validation result. The structure of JSON object is described under this table</td></tr><tr> <td> <p>errorHTML</p></td><td>HTML string</td><td>Validation error message rendered with err'
+||'or template (attribute <strong>Global</strong><strong> Error template</strong> or <strong>Error template</strong>)</td></tr><tr> <td>errorClass</td><td>String</td><td>jQuery selector to validation message</td></tr></table><p><strong>validationResult<'
+||'/strong> description:</p><table class="pretius_desc" cellspacing="0" cellpadding="0"> <tr> <th> Object attribute </th> <th> Type </th> <th> Description </th> </tr><tr> <td>item</td><td>String</td><td>Name of validated APEX item (e.g. P1_CUSTOMER_ID)<'
+||'/td></tr><tr> <td>message</td><td>String</td><td>Rendered Error Message if validation failed (plain text)</td></tr><tr> <td>passed</td><td>Boolean</td><td>Validation result (true/false)</td></tr><tr> <td>revalidate</td><td>String</td><td>List of APEX'
+||' Items that will be revalidated after current validation ends (eg. P1_CUSTOMER_NAME,P1_CUSTOMER_ADDRESS)</td></tr><tr> <td>time</td><td>JSON object</td><td> <pre>Execution time of PL/SQL validation process (object attributes are "ms", "seconds" and "'
+||'minutes")</pre> </td></tr><tr> <td>logs</td><td>Array of JSON</td><td> <p>Each object of the array contains information about performed validations</p></td></tr></table><p><strong>validationResult.logs.logs</strong> describes each validation that was'
+||' performed for APEX item. Description of JSON object in array:</p><table class="pretius_desc" cellspacing="0" cellpadding="0"> <tbody> <tr> <td><strong>Object attribute</span></strong></td><td><strong>Type</span></strong></td><td><strong>Description<'
+||'/span></strong></td><td><strong>Example</strong></td></tr><tr> <td>passed</td><td>Boolean</td><td>validation result</td><td>true</td></tr><tr> <td>validationCode</td><td>String</td><td>APEX validation code</td><td>ITEM_NOT_NULL</td></tr><tr> <td>vali'
+||'dationCondition</td><td>String</td><td>Information about validation condition result</td><td>Condition [PLSQL_EXPRESSION] passed.</td></tr><tr> <td>validationMsg</td><td>String</td><td>Validation message defined in APEX validation</td><td>Validation '
+||'"P4_NAME not null" [ITEM_NOT_NULL] failed</td></tr><tr> <td>validationName</td><td>String</td><td>Validation name that was executed for specific item</td><td>P4_NAME not null</td></tr></tbody></table>'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(103792819518354577)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>4
+,p_display_sequence=>40
+,p_prompt=>'Show validation processing'
+,p_attribute_type=>'SELECT LIST'
+,p_is_required=>true
+,p_default_value=>'1'
+,p_is_translatable=>false
+,p_lov_type=>'STATIC'
+,p_help_text=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'<p>',
+'  When this attribute is set to&nbsp;<strong>Yes</strong>, the image is displayed after item field during validation process.',
+'</p>'))
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103793589174355283)
+,p_plugin_attribute_id=>wwv_flow_api.id(103792819518354577)
+,p_display_sequence=>10
+,p_display_value=>'Yes'
+,p_return_value=>'1'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103793990905355712)
+,p_plugin_attribute_id=>wwv_flow_api.id(103792819518354577)
+,p_display_sequence=>20
+,p_display_value=>'No'
+,p_return_value=>'0'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(103910400386588802)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>5
+,p_display_sequence=>30
+,p_prompt=>'Error message place holder'
+,p_attribute_type=>'SELECT LIST'
+,p_is_required=>true
+,p_default_value=>'BEFORE_LABEL'
+,p_is_translatable=>false
+,p_depending_on_attribute_id=>wwv_flow_api.id(105003296621507083)
+,p_depending_on_has_to_exist=>true
+,p_depending_on_condition_type=>'IN_LIST'
+,p_depending_on_expression=>'1,3,4'
+,p_lov_type=>'STATIC'
+,p_help_text=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'<p>This attribute defines where validation message should be located.</p>',
+'<p>In APEX 4.x validation message&nbsp;is allowed before or after item label.</p>',
+'<p>In APEX 5.x validation message is allowed before or after item label and before or after item.</p>'))
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103911204541590002)
+,p_plugin_attribute_id=>wwv_flow_api.id(103910400386588802)
+,p_display_sequence=>10
+,p_display_value=>'Before label'
+,p_return_value=>'BEFORE_LABEL'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103911607312590766)
+,p_plugin_attribute_id=>wwv_flow_api.id(103910400386588802)
+,p_display_sequence=>20
+,p_display_value=>'After label'
+,p_return_value=>'AFTER_LABEL'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103912010775591720)
+,p_plugin_attribute_id=>wwv_flow_api.id(103910400386588802)
+,p_display_sequence=>30
+,p_display_value=>'Before item (only APEX 5)'
+,p_return_value=>'BEFORE_ITEM'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103912413545592529)
+,p_plugin_attribute_id=>wwv_flow_api.id(103910400386588802)
+,p_display_sequence=>40
+,p_display_value=>'After item (only APEX 5)'
+,p_return_value=>'AFTER_ITEM'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(103913920518622921)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>6
+,p_display_sequence=>12
+,p_prompt=>'Error template'
+,p_attribute_type=>'TEXT'
+,p_is_required=>true
+,p_default_value=>'<span class="t-Form-error">#ERROR_MESSAGE#</span>'
+,p_is_translatable=>false
+,p_depending_on_attribute_id=>wwv_flow_api.id(103921808622035885)
+,p_depending_on_has_to_exist=>true
+,p_depending_on_condition_type=>'EQUALS'
+,p_depending_on_expression=>'Y'
+,p_help_text=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'<p>',
+'  This attribute contains validation message template, which is used to render validation message after performing validation on the fly.',
+'</p>',
+''))
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(103921808622035885)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>7
+,p_display_sequence=>10
+,p_prompt=>'Override global template'
+,p_attribute_type=>'SELECT LIST'
+,p_is_required=>true
+,p_default_value=>'N'
+,p_is_translatable=>false
+,p_lov_type=>'STATIC'
+,p_help_text=>'<p>When this attribute is set to <strong>Yes</strong>, the <strong>Error template</strong> is used to render validation message. Otherwise validation message is rendered from&nbsp;<strong>Global</strong><strong> Error template</strong>&nbsp;plugin at'
+||'tribute.</p>'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103922613471037296)
+,p_plugin_attribute_id=>wwv_flow_api.id(103921808622035885)
+,p_display_sequence=>10
+,p_display_value=>'Yes'
+,p_return_value=>'Y'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(103923016241038024)
+,p_plugin_attribute_id=>wwv_flow_api.id(103921808622035885)
+,p_display_sequence=>20
+,p_display_value=>'No'
+,p_return_value=>'N'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(20530704378809353)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>8
+,p_display_sequence=>80
+,p_prompt=>'Re-validate depending fields'
+,p_attribute_type=>'SELECT LIST'
+,p_is_required=>true
+,p_default_value=>'1'
+,p_is_translatable=>false
+,p_lov_type=>'STATIC'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(20531610958811216)
+,p_plugin_attribute_id=>wwv_flow_api.id(20530704378809353)
+,p_display_sequence=>10
+,p_display_value=>'Yes'
+,p_return_value=>'1'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(20532012690811675)
+,p_plugin_attribute_id=>wwv_flow_api.id(20530704378809353)
+,p_display_sequence=>20
+,p_display_value=>'No'
+,p_return_value=>'0'
+);
+wwv_flow_api.create_plugin_event(
+ p_id=>wwv_flow_api.id(103146019618670530)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_name=>'pretius_validation_ended'
+,p_display_name=>'validation ended'
+);
+wwv_flow_api.create_plugin_event(
+ p_id=>wwv_flow_api.id(103135416429363969)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_name=>'pretius_validation_failed'
+,p_display_name=>'validation not passed'
+);
+wwv_flow_api.create_plugin_event(
+ p_id=>wwv_flow_api.id(103144201039598858)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_name=>'pretius_validation_init'
+,p_display_name=>'validation started'
+);
+wwv_flow_api.create_plugin_event(
+ p_id=>wwv_flow_api.id(103197505193074350)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_name=>'pretius_validation_not_found'
+,p_display_name=>'validation not found'
+);
+wwv_flow_api.create_plugin_event(
+ p_id=>wwv_flow_api.id(103135692319366426)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_name=>'pretius_validation_success'
+,p_display_name=>'validation passed'
+);
+end;
+/
+begin
 wwv_flow_api.g_varchar2_table := wwv_flow_api.empty_varchar2_table;
 wwv_flow_api.g_varchar2_table(1) := '696D672E76616C69646174696F6E4C6F61646572496D672C200D0A696D672E707265746975735F76616C5F737563636573732C0D0A696D672E707265746975735F76616C5F6661696C6564207B0D0A202070616464696E672D6C6566743A203370783B0D';
 wwv_flow_api.g_varchar2_table(2) := '0A20206865696768743A20313270783B0D0A7D0D0A0D0A2E617065784275696C64496E4572726F7254657874207B0D0A2020636F6C6F723A207265643B0D0A7D0D0A0D0A2E742D466F726D2D696E707574436F6E7461696E657220696E7075745B747970';
@@ -1507,29 +1211,20 @@ wwv_flow_api.g_varchar2_table(4) := '722C0D0A696E7075742E707265746975735F6869676
 wwv_flow_api.g_varchar2_table(5) := '75745B747970653D2274657874225D2E707265746975735F686967686C696768745F737563636573732C0D0A2E742D466F726D2D696E707574436F6E7461696E657220696E7075742E746578745F6669656C642E707265746975735F686967686C696768';
 wwv_flow_api.g_varchar2_table(6) := '745F737563636573732C0D0A696E7075742E707265746975735F686967686C696768745F73756363657373207B0D0A20206261636B67726F756E642D636F6C6F723A20234534464645363B0D0A7D';
 null;
- 
 end;
 /
-
- 
 begin
- 
-wwv_flow_api.create_plugin_file (
-  p_id => 2912217716235601 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_file_name => 'pretius_validation_style.css'
- ,p_mime_type => 'text/css'
- ,p_file_content => wwv_flow_api.g_varchar2_table
-  );
-null;
- 
+wwv_flow_api.create_plugin_file(
+ p_id=>wwv_flow_api.id(7184700298768618)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_file_name=>'pretius_validation_style.css'
+,p_mime_type=>'text/css'
+,p_file_charset=>'utf-8'
+,p_file_content=>wwv_flow_api.varchar2_to_blob(wwv_flow_api.g_varchar2_table)
+);
 end;
 /
-
- 
 begin
- 
 wwv_flow_api.g_varchar2_table := wwv_flow_api.empty_varchar2_table;
 wwv_flow_api.g_varchar2_table(1) := '66756E6374696F6E20707265746975735F76616C69646174696F6E28206F626A2C2066696C655F7072656669782029207B0D0A0D0A202066756E6374696F6E206765744572726F7254656D706C6174652820617474726962757465732029207B0D0A2020';
 wwv_flow_api.g_varchar2_table(2) := '202072657475726E20617474726962757465732E6174747269627574653037203D3D20275927203F20617474726962757465732E6174747269627574653036203A20617474726962757465732E61747472696275746531303B0D0A20207D0D0A0D0A2020';
@@ -1560,7 +1255,7 @@ wwv_flow_api.g_varchar2_table(26) := '6974656D56616C7565203D20242E6D616B65417272
 wwv_flow_api.g_varchar2_table(27) := '2E6D61702866756E6374696F6E28297B2072657475726E20746869732E76616C7565207D29292E6A6F696E28273A27293B0D0A202020200D0A20207D0D0A2020656C7365207B0D0A202020206974656D5F6964203D2074726967676572696E67456C656D';
 wwv_flow_api.g_varchar2_table(28) := '656E742E617474722827696427293B0D0A202020206974656D56616C7565203D2074726967676572696E67456C656D656E742E76616C28293B0D0A0D0A20207D0D0A20200D0A20206974656D5265666572656E6365203D2024282723272B6974656D5F69';
 wwv_flow_api.g_varchar2_table(29) := '64293B0D0A20206C6F61646572496D67203D206974656D5265666572656E63652E706172656E7428292E66696E6428272E76616C69646174696F6E4C6F61646572496D6727293B0D0A20200D0A20206C6F61646572496D67203D206C6F61646572496D67';
-wwv_flow_api.g_varchar2_table(30) := '2E73697A652829203E2030203F206C6F61646572496D67203A202428273C696D67207372633D22272B66696C655F7072656669782B276C6F6164696E674261722E6769662220636C6173733D2276616C69646174696F6E4C6F61646572496D672220616C';
+wwv_flow_api.g_varchar2_table(30) := '2E6C656E677468203E2030203F206C6F61646572496D67203A202428273C696D67207372633D22272B66696C655F7072656669782B276C6F6164696E674261722E6769662220636C6173733D2276616C69646174696F6E4C6F61646572496D672220616C';
 wwv_flow_api.g_varchar2_table(31) := '743D226C6F6164696E67223E27293B0D0A0D0A0D0A2020706C7567696E41747472696275746573203D207B0D0A2020202072656E6465724F7074696F6E3A207061727365496E7428617474726962757465732E6174747269627574653031292C0D0A2020';
 wwv_flow_api.g_varchar2_table(32) := '2020617065784572726F72436C6173733A206765744572726F72436C61737328206174747269627574657320292C0D0A2020202073686F7750726F63657373696E673A20617474726962757465732E61747472696275746530342C0D0A20202020657272';
 wwv_flow_api.g_varchar2_table(33) := '6F72506C616365486F6C6465723A20617474726962757465732E61747472696275746530352C0D0A202020206572726F7254656D706C6174653A206765744572726F7254656D706C61746528206174747269627574657320290D0A20207D3B0D0A0D0A20';
@@ -1643,29 +1338,20 @@ wwv_flow_api.g_varchar2_table(109) := '7269676765722827707265746975735F76616C696
 wwv_flow_api.g_varchar2_table(110) := '522C20746578745374617475732C206572726F725468726F776E297B202F2F6A71584852206A715848522C20537472696E6720746578745374617475732C20537472696E67206572726F725468726F776E0D0A202020202020616C65727428274572726F';
 wwv_flow_api.g_varchar2_table(111) := '72206F636375726564207768696C652072657472696576696E6720414A415820646174613A20272B746578745374617475732B225C6E222B6572726F725468726F776E293B0D0A202020207D0D0A20207D293B0D0A0D0A7D0D0A0D0A';
 null;
- 
 end;
 /
-
- 
 begin
- 
-wwv_flow_api.create_plugin_file (
-  p_id => 2912906502240781 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_file_name => 'pretius_validation.js'
- ,p_mime_type => 'application/javascript'
- ,p_file_content => wwv_flow_api.g_varchar2_table
-  );
-null;
- 
+wwv_flow_api.create_plugin_file(
+ p_id=>wwv_flow_api.id(7185389084773798)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_file_name=>'pretius_validation.js'
+,p_mime_type=>'application/javascript'
+,p_file_charset=>'utf-8'
+,p_file_content=>wwv_flow_api.varchar2_to_blob(wwv_flow_api.g_varchar2_table)
+);
 end;
 /
-
- 
 begin
- 
 wwv_flow_api.g_varchar2_table := wwv_flow_api.empty_varchar2_table;
 wwv_flow_api.g_varchar2_table(1) := '47494638396140004000840000242624C4C2C4E4E2E4D4D2D4F4F2F4CCCACCECEAECDCDADCFCFAFCC4C6C4E4E6E4D4D6D4F4F6F4CCCECCECEEECDCDEDCFCFEFC000000000000000000000000000000000000000000000000000000000000000000000000';
 wwv_flow_api.g_varchar2_table(2) := '00000000000000000021FF0B4E45545343415045322E30030100000021F90409060010002C00000000400040000005FE20248E6469928C212CC3280440101C676DDFB8682C721F9080A0105020E48E488883E7F38D10C3682C492D190ACD2C63249516AA';
@@ -1722,29 +1408,19 @@ wwv_flow_api.g_varchar2_table(52) := '8D4C660FA4BD330D07469509EB5C2D9F32A1DCE918
 wwv_flow_api.g_varchar2_table(53) := '6E02F529A95A16D48E7AFB89A7E4BE46D74871AA57A6DE100C96C95304C0360333A5045CF008453AA1A15929D92408C403624D7157297549084483482C2461861A5634086A1862528A7E7A78980988A518880603F55965A25FDF39B40D242CDE91407036';
 wwv_flow_api.g_varchar2_table(54) := 'EE16448E65F03813030FCC06E48435AE55CB02DCB0D8406149521102003B';
 null;
- 
 end;
 /
-
- 
 begin
- 
-wwv_flow_api.create_plugin_file (
-  p_id => 99468035644404937 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_file_name => 'loadingBar.gif'
- ,p_mime_type => 'image/gif'
- ,p_file_content => wwv_flow_api.g_varchar2_table
-  );
-null;
- 
+wwv_flow_api.create_plugin_file(
+ p_id=>wwv_flow_api.id(103740518226937954)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_file_name=>'loadingBar.gif'
+,p_mime_type=>'image/gif'
+,p_file_content=>wwv_flow_api.varchar2_to_blob(wwv_flow_api.g_varchar2_table)
+);
 end;
 /
-
- 
 begin
- 
 wwv_flow_api.g_varchar2_table := wwv_flow_api.empty_varchar2_table;
 wwv_flow_api.g_varchar2_table(1) := '89504E470D0A1A0A0000000D49484452000000140000001408060000008D891D0D0000001974455874536F6674776172650041646F626520496D616765526561647971C9653C0000032069545874584D4C3A636F6D2E61646F62652E786D700000000000';
 wwv_flow_api.g_varchar2_table(2) := '3C3F787061636B657420626567696E3D22EFBBBF222069643D2257354D304D7043656869487A7265537A4E54637A6B633964223F3E203C783A786D706D65746120786D6C6E733A783D2261646F62653A6E733A6D6574612F2220783A786D70746B3D2241';
@@ -1761,29 +1437,19 @@ wwv_flow_api.g_varchar2_table(12) := 'DD69997B2714E8053A70C917F08152F044EDE77888
 wwv_flow_api.g_varchar2_table(13) := '6B1B64595BA44FD334DBE2BB166EDC59A843F8E90B6872578322B5CDE2DCC30E5A701E5FB565C650801C9CC55B5FC00155C20DB5BFE107C29AE62A6A35D20DCDA81D25EAC05BCBAFF491D957931AED8693B362757652D564F21CA29613BE4A69C317050E';
 wwv_flow_api.g_varchar2_table(14) := '7B82A5477E0D735AC4EB48FCEFB42953B5986A58C76B2CAAEC8EE302CA558257B1649F3641CF08CC29734E475744394D59398F2A7766B36FEDDF019BA9EB8F000300D89586BAB70FB20A0000000049454E44AE426082';
 null;
- 
 end;
 /
-
- 
 begin
- 
-wwv_flow_api.create_plugin_file (
-  p_id => 99531426659977693 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_file_name => 'validation_failed.png'
- ,p_mime_type => 'image/png'
- ,p_file_content => wwv_flow_api.g_varchar2_table
-  );
-null;
- 
+wwv_flow_api.create_plugin_file(
+ p_id=>wwv_flow_api.id(103803909242510710)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_file_name=>'validation_failed.png'
+,p_mime_type=>'image/png'
+,p_file_content=>wwv_flow_api.varchar2_to_blob(wwv_flow_api.g_varchar2_table)
+);
 end;
 /
-
- 
 begin
- 
 wwv_flow_api.g_varchar2_table := wwv_flow_api.empty_varchar2_table;
 wwv_flow_api.g_varchar2_table(1) := '89504E470D0A1A0A0000000D49484452000000140000001408060000008D891D0D0000001974455874536F6674776172650041646F626520496D616765526561647971C9653C0000032069545874584D4C3A636F6D2E61646F62652E786D700000000000';
 wwv_flow_api.g_varchar2_table(2) := '3C3F787061636B657420626567696E3D22EFBBBF222069643D2257354D304D7043656869487A7265537A4E54637A6B633964223F3E203C783A786D706D65746120786D6C6E733A783D2261646F62653A6E733A6D6574612F2220783A786D70746B3D2241';
@@ -1799,32 +1465,23 @@ wwv_flow_api.g_varchar2_table(11) := 'CAEE0662316C0682C24D8E08C3EA81380788DD81F8
 wwv_flow_api.g_varchar2_table(12) := 'F03E9406D99A05656F036263206EC4631803342C310C3C00A59981B804883BA0FCA7040C63408A7114033702F177247E3910F701B116D4B069380CFB0BC4F3B11908CAA793D1141702F125A8CB187118380788CFE2CA29A064B1154D8C194F323A00CDAA';
 wwv_flow_api.g_varchar2_table(13) := '38B3DE4F68F69B49449A9C0F4D0D5FB1165F48E00734CCD60071381083CA3551A897DF00F11968C1B0139B2D8C83BEC406083000811A462E4C6EB4FF0000000049454E44AE426082';
 null;
- 
 end;
 /
-
- 
 begin
- 
-wwv_flow_api.create_plugin_file (
-  p_id => 99532124934978557 + wwv_flow_api.g_id_offset
- ,p_flow_id => wwv_flow.g_flow_id
- ,p_plugin_id => 100691937586019569 + wwv_flow_api.g_id_offset
- ,p_file_name => 'validation_success.png'
- ,p_mime_type => 'image/png'
- ,p_file_content => wwv_flow_api.g_varchar2_table
-  );
-null;
- 
+wwv_flow_api.create_plugin_file(
+ p_id=>wwv_flow_api.id(103804607517511574)
+,p_plugin_id=>wwv_flow_api.id(104964420168552586)
+,p_file_name=>'validation_success.png'
+,p_mime_type=>'image/png'
+,p_file_content=>wwv_flow_api.varchar2_to_blob(wwv_flow_api.g_varchar2_table)
+);
 end;
 /
-
+prompt --application/end_environment
+begin
+wwv_flow_api.import_end(p_auto_install_sup_obj => nvl(wwv_flow_application_install.get_auto_install_sup_obj, false));
 commit;
-begin 
-execute immediate 'begin dbms_session.set_nls( param => ''NLS_NUMERIC_CHARACTERS'', value => '''''''' || replace(wwv_flow_api.g_nls_numeric_chars,'''''''','''''''''''') || ''''''''); end;';
 end;
 /
-set verify on
-set feedback on
-set define on
+set verify on feedback on define on
 prompt  ...done
